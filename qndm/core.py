@@ -9,6 +9,7 @@ from qiskit.providers.fake_provider import FakeLondonV2, FakeManilaV2, FakeJakar
 from qndm.derivatives.gradient.qndm import qndm_gradient_circuit
 from qndm.derivatives.gradient.dm import dm_gradient_circuit
 import random
+import numpy as np
 
 
 #---------------------------------------------------------------------------------------------
@@ -117,15 +118,10 @@ def qndm_gradient(lambda1, in_par ,G_real_qndm, newspop, num_qub, num_l, ent_gat
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 #####################################
 #                                   #
-#        Gradient DM Manual         #      
+#            Gradient DM            #      
 #                                   #
 #####################################
 
-#//////////#
-#   main   #
-#//////////#
-
-#main DM Manual
 def dm_derivative(initial_pameter,shift_position,num_qub,num_l, ent_gate, shift,kk,val_g,shots,gates_tot_dm2,G_real_dm2,noise,cps,k): 
 
 
@@ -139,7 +135,7 @@ def dm_derivative(initial_pameter,shift_position,num_qub,num_l, ent_gate, shift,
     bc = QuantumCircuit(q_reg, c_reg, name="DM")
 
     #quantum circuit: "DM (manual) for gradient"
-    DM_manual(bc, shift_position,num_qub,num_l,val_g,shift,kk,ent_gate)
+    dm_gradient_circuit(bc, shift_position,num_qub,num_l,val_g,shift,kk,ent_gate)
     
 
     #parameters initialization
@@ -210,7 +206,7 @@ def dm_derivative(initial_pameter,shift_position,num_qub,num_l, ent_gate, shift,
 
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------
-# Gradient calculation DM manual
+# Gradient calculation DM 
 def dm_gradient(in_par ,G_real_dm2, spop, num_qub, num_l, ent_gate,shift,gates_tot_dm2,noise,shots,val_g, deri = False):
     """Calculate first order derivatives with Direct Measurament method. \n
 
