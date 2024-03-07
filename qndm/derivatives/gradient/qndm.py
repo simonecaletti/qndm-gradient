@@ -3,6 +3,7 @@
 from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
 from qiskit.circuit import Parameter,ParameterVector
 from qiskit.circuit.library import PauliEvolutionGate
+from qndm.layers.unitaries_gradient import *
 import numpy as np
 from math import cos, sin
 
@@ -37,7 +38,7 @@ def qndm_gradient_circuit(circ,shift_position,pm,num_qub,num_l,val_g,q_d,shift, 
   if simp == True:
     div = int(shift_position/num_qub)
     #if we are above the first layer we have a part of U1+ that can be simplified with U2
-    if div>=1:
+        if div>=1:
       for i in range(div):
         val_g2 =  val_g2[num_qub:]
 

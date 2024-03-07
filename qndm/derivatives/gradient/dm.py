@@ -3,6 +3,7 @@
 from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
 from qiskit.circuit import Parameter,ParameterVector
 from qiskit.circuit.library import PauliEvolutionGate
+from qndm.layers.unitaries_gradient import *
 import numpy as np
 from math import cos, sin
 

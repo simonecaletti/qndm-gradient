@@ -6,14 +6,14 @@ from qiskit import QuantumCircuit, execute, BasicAer
 from qiskit import Aer,QuantumRegister, ClassicalRegister, execute,transpile,QuantumCircuit
 from qiskit_aer.noise import NoiseModel
 from qiskit.providers.fake_provider import FakeLondonV2, FakeManilaV2, FakeJakarta
+from qndm.derivatives.gradient.qndm import qndm_gradient_circuit
+from qndm.derivatives.gradient.dm import dm_gradient_circuit
 import random
 
 
 #---------------------------------------------------------------------------------------------
 #import QNDM package
-
-from qndm.core import *
-from qndm.tool.q_gate_count import q_counter
+#from qndm.tool.q_gate_count import q_counter
 
 #---------------------------------------------------------------------------------------------
 #####################################
@@ -54,7 +54,7 @@ def qndm_derivative(p_deco, initial_pameter,shift_position,newspop,num_qub,num_l
     circ.measure(detect_index, 0)
 
     # Quantum gates Counter
-    q_counter(gates_tot_qndm,circ.decompose().decompose().decompose())
+    #q_counter(gates_tot_qndm,circ.decompose().decompose().decompose())
  
     #simulated NOISE
     #backend = Aer.get_backend('aer_simulator_stabilizer')
@@ -164,7 +164,7 @@ def dm_derivative(initial_pameter,shift_position,num_qub,num_l, ent_gate, shift,
 
    
     # Quantum gates Counter
-    q_counter(gates_tot_dm2,circ.decompose().decompose().decompose())
+    #    q_counter(gates_tot_dm2,circ.decompose().decompose().decompose())
 
         #simulated NOISE
     backend = BasicAer.get_backend('qasm_simulator')
