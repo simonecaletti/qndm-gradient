@@ -43,9 +43,9 @@ def qndm_gradient_circuit(circ,shift_position,pm,num_qub,num_l,val_g,q_d,shift, 
           val_g2 =  val_g2[num_qub:]
 
 
-  l_d=U1_dag(val_g2,params,num_qub,num_l,shift,shift_position,div,ent_gate)
+  l_d=U1_dag(val_g2,params,num_qub,num_l,shift,shift_position,ent_gate)
   circ.compose(l_d, qubits=qubits, inplace=True)
-  l_2=U2(val_g2,params,num_qub,num_l,shift,shift_position,div,ent_gate)
+  l_2=U2(val_g2,params,num_qub,num_l,shift,shift_position,ent_gate)
   circ.compose(l_2, qubits=qubits, inplace=True)
 
 
