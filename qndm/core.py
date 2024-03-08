@@ -167,7 +167,7 @@ def dm_derivative(initial_pameter,shift_position,num_qub,num_l, ent_gate, shift,
 
 
     circ.measure(qubit_index, qubit_index2)
-
+    
    
     # Quantum gates Counter
     #    q_counter(gates_tot_dm2,circ.decompose().decompose().decompose())

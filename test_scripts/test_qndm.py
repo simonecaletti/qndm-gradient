@@ -88,7 +88,7 @@ newspop = get_SparsePauliOp(PS_QNDM, cps_QNDM) #After adding the detector
 num_l = 2
 
 #inside a layer: number of rotational layers
-lay_u = 1
+lay_u = 2
 
 #entanglement layer
 ent_gate = 0
@@ -142,7 +142,7 @@ print("Into the derivatives process...", end="")
 
 
 #array to save gradient results 
-G_real_qndm = np.zeros(pars*lay_u)
+G_real_qndm = np.zeros(pars)
 
 #gate counter
 gates_tot_qndm=np.zeros(12)
@@ -179,4 +179,3 @@ QNDM_path = os.path.join(output_path,'QNDM_der_0.csv' )
 
 df_QNDM.to_csv(QNDM_path, index=False)
  
-
