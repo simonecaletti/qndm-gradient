@@ -11,6 +11,7 @@ from qndm.derivatives.gradient.dm import dm_gradient_circuit
 from qndm.derivatives.hessian.qndm import qndm_hessian_circuit
 from qndm.derivatives.hessian.dm import dm_hessian_circuit
 from qndm.hamiltonians.normalization.coeff_norm import get_coeffs_norm
+from qndm.tools.counting import q_counter
 
 import random
 import numpy as np
@@ -33,7 +34,7 @@ from math import asin
 #//////////#
 
 #QNDM
-def qndm_derivative(p_deco, initial_pameter,shift_position,newspop,num_qub,num_l, ent_gate,shift,G_real_qndm,gates_tot_qndm,shots,noise,val_g, simp): 
+def qndm_derivative(p_deco, initial_pameter,shift_position,newspop,num_qub,num_l, ent_gate,shift,G_real_qndm,shots,noise,val_g,simp): 
 
     # Setup qubit register
     q_reg_size = num_qub + 1 #numbers of qubit (sys + det)
@@ -99,7 +100,7 @@ def qndm_derivative(p_deco, initial_pameter,shift_position,newspop,num_qub,num_l
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 # Gradient calculation QNDM
-def qndm_gradient(lambda1, in_par ,G_real_qndm, newspop, num_qub, num_l, ent_gate,shift,gates_tot_qndm,noise,shots,val_g, simp = False, deri = False):
+def qndm_gradient(lambda1, in_par ,G_real_qndm, newspop, num_qub, num_l, ent_gate,shift,noise,shots,val_g, simp = False, deri = False):
 
     """Calculate first order derivatives with QNDM method. \n
 
@@ -132,7 +133,7 @@ def qndm_gradient(lambda1, in_par ,G_real_qndm, newspop, num_qub, num_l, ent_gat
 #                                   #
 #####################################
 
-def dm_derivative(initial_pameter,shift_position,num_qub,num_l, ent_gate, shift,kk,val_g,shots,gates_tot_dm2,G_real_dm2,noise,cps,k): 
+def dm_derivative(initial_pameter,shift_position,num_qub,num_l, ent_gate, shift,kk,val_g,shots,G_real_dm2,noise,cps,k): 
 
 
     # Setup qubit register
@@ -217,7 +218,7 @@ def dm_derivative(initial_pameter,shift_position,num_qub,num_l, ent_gate, shift,
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 # Gradient calculation DM 
-def dm_gradient(in_par ,G_real_dm2, spop, num_qub, num_l, ent_gate,shift,gates_tot_dm2,noise,shots,val_g, deri = False):
+def dm_gradient(in_par ,G_real_dm2, spop, num_qub, num_l, ent_gate,shift,noise,shots,val_g, deri = False):
     """Calculate first order derivatives with Direct Measurament method. \n
 
     #Paramenters: \n
