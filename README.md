@@ -22,8 +22,3 @@ python3 test_qndm.py
 ```
 If the installation is working correctly a **QNDM_der_0.csv** and a **RunCard_Der.txt** file have been created. The first one contains information about the gradient computation using the QNDM algorithm, while the second is an automatically generated runcard containing the detail of the run.
 
-
-## Examples
-
-
-## Repository structure
