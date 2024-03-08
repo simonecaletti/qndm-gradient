@@ -144,11 +144,8 @@ print("Into the derivatives process...", end="")
 #array to save gradient results 
 G_real_qndm = np.zeros(pars)
 
-#gate counter
-gates_tot_qndm=np.zeros(12)
-
 #gradient with qndm
-qndm_gradient(lambda1, cas ,G_real_qndm, newspop, num_qub, num_l, ent_gate, shift,gates_tot_qndm,noise,shots,val_g)
+qndm_gradient(lambda1, cas ,G_real_qndm, newspop, num_qub, num_l, ent_gate, shift,noise,shots,val_g)
 
 #error calculation:
 error_QNDM = get_qndm_error(pars, G_real_qndm, lambda1, shots, shift)
