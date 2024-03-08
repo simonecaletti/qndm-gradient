@@ -21,19 +21,7 @@ def qndm_hessian_circuit(circ,shift_position,sh2,pm,num_qub,num_l,q_d,shift,val_
     qubits_.append(i)
   qubits_.insert(0,num_qub)
 
-  lay_qn=U1_hess(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
- 
 
-  circ.compose(lay_qn, qubits=qubits, inplace=True)
-
-
-  #first exponential interation
-  
-  evo_time = Parameter('p_deco')
-  trotterized_op = PauliEvolutionGate(pm,evo_time)
-  circ.append(trotterized_op, qubits_)                            
-
-  
   #simplification part
   div = 0
   if simp == True:
@@ -46,28 +34,50 @@ def qndm_hessian_circuit(circ,shift_position,sh2,pm,num_qub,num_l,q_d,shift,val_
       for i in range(div):
         val_g =  val_g[num_qub:]
 
-  l_2=U2_hess(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
-  circ.compose(l_2, qubits=qubits, inplace=True)
+  #U1
+  U_1=U1_hess(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
+  circ.compose(U_1, qubits=qubits, inplace=True)
 
-  #second exponential interation
+
+  #first interction with detector
+  evo_time = Parameter('p_deco')
+  trotterized_op = PauliEvolutionGate(pm,evo_time)
+  circ.append(trotterized_op, qubits_)                            
+
+  #U1_dag
+  U_1_dag=U1_hess_dag(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
+  circ.compose(U_1_dag, qubits=qubits, inplace=True)
+  #U2
+  U_2=U2_hess(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
+  circ.compose(U_2, qubits=qubits, inplace=True)
+
+  #second interction with detector
   evo_time2 = Parameter('p_deco2')
   trotterized_op2 = PauliEvolutionGate(pm,-evo_time2)
   circ.append(trotterized_op2, qubits_)
 
-  #Update U3
-  l_3=U3_hess(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
-  circ.compose(l_3, qubits=qubits, inplace=True)
+  #U2_dag
+  U_2_dag=U2_hess_dag(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
+  circ.compose(U_2_dag, qubits=qubits, inplace=True)
 
-  #third exponential interation
+  #U3
+  U_3=U3_hess(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
+  circ.compose(U_3, qubits=qubits, inplace=True)
+
+  #third interction with detector
   evo_time3 = Parameter('p_deco3')
   trotterized_op3 = PauliEvolutionGate(pm,evo_time3)
   circ.append(trotterized_op3, qubits_)
 
-  #Update U4
-  l_4=U4_hess(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
-  circ.compose(l_4, qubits=qubits, inplace=True)
+  #U3_dag
+  U_3_dag=U3_hess_dag(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
+  circ.compose(U_3_dag, qubits=qubits, inplace=True)
 
-  #fourth exponential interation
+  #U4
+  U_4=U4_hess(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
+  circ.compose(U_4, qubits=qubits, inplace=True)
+
+  #fourth interction with detector
   evo_time4 = Parameter('p_deco4')
   trotterized_op4 = PauliEvolutionGate(pm,-evo_time4)
   circ.append(trotterized_op4, qubits_)

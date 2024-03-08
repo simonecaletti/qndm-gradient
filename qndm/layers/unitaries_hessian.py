@@ -244,7 +244,7 @@ def U2_hess_dag(val_g,par_var,num_qu,num_l,shift_pos,sh2,shift,ent_gate):
 
 
 #U3 hessian 
-def U3_hess(val_g,par_var,num_qu,num_l,shift_pos,sh2,shift,div,ent_gate):
+def U3_hess(val_g,par_var,num_qu,num_l,shift_pos,sh2,shift,ent_gate):
 
   q_reg = QuantumRegister(num_qu, "q")
   circ = QuantumCircuit(q_reg, name="layer-")
@@ -302,7 +302,7 @@ def U3_hess(val_g,par_var,num_qu,num_l,shift_pos,sh2,shift,div,ent_gate):
 
 
 #U3 hessian dag 
-def U4_hess(val_g,par_var,num_qu,num_l,shift_pos,sh2,shift,div,ent_gate):
+def U3_hess_dag(val_g,par_var,num_qu,num_l,shift_pos,sh2,shift,ent_gate):
 
   q_reg = QuantumRegister(num_qu, "q")
   circ = QuantumCircuit(q_reg, name="layer-")
@@ -364,7 +364,7 @@ def U4_hess(val_g,par_var,num_qu,num_l,shift_pos,sh2,shift,div,ent_gate):
 
 
 #U4 hessian 
-def U4_hess(val_g,par_var,num_qu,num_l,shift_pos,sh2,shift,div,ent_gate):
+def U4_hess(val_g,par_var,num_qu,num_l,shift_pos,sh2,shift,ent_gate):
 
   q_reg = QuantumRegister(num_qu, "q")
   circ = QuantumCircuit(q_reg, name="layer-")
