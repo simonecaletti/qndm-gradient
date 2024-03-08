@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-echo "Installing the hsf5 lybrary:"
+echo "Installing the hsf5 library:"
 
 #creating a new env with conda
 conda create -n qndm python=3.9.13
