@@ -22,7 +22,6 @@ from qiskit.providers.fake_provider import FakeLondonV2, FakeManilaV2, FakeJakar
 
 #---------------------------------------------------------------------------------------------
 #import QNDM package
-sys.path.insert(1, '/Users/giovanniminuto/Documents/My_codes/QNDM_release/qndm-gradient')
 
 from qndm.hamiltonians.examples import add_detector, get_SparsePauliOp
 from qndm.core import *
