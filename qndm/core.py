@@ -10,6 +10,8 @@ from qndm.derivatives.gradient.qndm import qndm_gradient_circuit
 from qndm.derivatives.gradient.dm import dm_gradient_circuit
 from qndm.derivatives.hessian.qndm import qndm_hessian_circuit
 from qndm.derivatives.hessian.dm import dm_hessian_circuit
+from qndm.hamiltonians.normalization.coeff_norm import get_coeffs_norm
+
 import random
 import numpy as np
 from math import asin
@@ -42,6 +44,9 @@ def qndm_derivative(p_deco, initial_pameter,shift_position,newspop,num_qub,num_l
     q_reg = QuantumRegister(q_reg_size, "q")
     c_reg = ClassicalRegister(q_reg_size_c, "c")
     bc = QuantumCircuit(q_reg, c_reg, name="QNDM")
+
+    #hamiltonian normalization
+    norm_coeff = get_coeffs_norm(newspop) 
 
     #quantum circuit: "QNDM for gradient"
     qndm_gradient_circuit(bc, shift_position,newspop,num_qub,num_l,val_g,detect_index,shift, simp,ent_gate)
@@ -88,7 +93,7 @@ def qndm_derivative(p_deco, initial_pameter,shift_position,newspop,num_qub,num_l
 
     #calculate value of derivative in one direction  
     from math import sqrt,asin,sin
-    G_real_qndm[shift_position] = asin(2*p1-1)/(2*p_deco)
+    G_real_qndm[shift_position] = norm_coeff*asin(2*p1-1)/(2*p_deco)
 
     return None 
 
@@ -114,6 +119,8 @@ def qndm_gradient(lambda1, in_par ,G_real_qndm, newspop, num_qub, num_l, ent_gat
     simp -- if True the sim method is active \n
     deri = False -- If True the function calcualte only a random element of gradient \n
     """
+
+    
     for shift_position in range(len(val_g)):
         qndm_derivative(lambda1, in_par ,shift_position, newspop, num_qub, num_l, ent_gate, shift, G_real_qndm,gates_tot_qndm,shots,noise,val_g, simp)
 
@@ -626,5 +633,6 @@ def dm_hessian(in_par ,G_real_dm, H_real_dm2, PS, num_qub, num_l,ent_gate, shift
                     elif shift_sign == 3:
                         shift1 = -shift
                         shift2 = -shift
+
 
                     dm_derivative_hessian(in_par,sh1,sh2,num_qub,num_l,ent_gate,shift1,shift2,kk,val_g,shots,gates_tot_dm2,G_real_dm, H_real_dm2,noise,cps,k, gradient_calc)

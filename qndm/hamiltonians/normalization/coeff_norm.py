@@ -5,7 +5,7 @@ import numpy as np
 from qiskit.quantum_info import SparsePauliOp
 
 # get_coeffs normalized the Hamiltonian coefficient 
-def get_coeffs(spop):
+def get_coeffs_norm(spop):
     imp_num = len(spop.coeffs)
     sum_coeff = 0 
     for i in range(1,imp_num+1):
