@@ -16,7 +16,7 @@ import numpy as np
 def get_qndm_error(pars, G_real_qndm, lambda1, shots, shift=np.pi/2):
     error = np.zeros(pars)
     
-    for i in range(pars*lay_u):
+    for i in range(pars):
         error[i] = (1/(2*sqrt(shots)))*(1/(sqrt(1-(sin(lambda1*sin(shift)*G_real_qndm[i]))**2)))*(1/(lambda1*sin(shift)))
     
     return error
