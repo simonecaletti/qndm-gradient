@@ -64,26 +64,10 @@ def print_runcard(num_qub, num_l, val_g, spop, shots, lambda1=0, shift=np.pi/2, 
         else:
             f.write("Lambda (QNDM coupling) = {}\n".format(lambda1))
 
-
-        #simulated NOISE
-        backend = Aer.get_backend('aer_simulator_stabilizer')
-        coupling_map = None
-        basis_gates = None
-        noise_model = None
-
         if noise == True:
-            backend = FakeJakarta()
-            coupling_map = backend.configuration().coupling_map
-            noise_model = NoiseModel.from_backend(backend)
-            basis_gates = noise_model.basis_gates
-
-        # Select the QasmSimulator from the Aer provider
-
-        #simulator = FakeJakartaV2()
-        f.write("noise model: {} \n".format(noise_model))
-        f.write("basis gates: {}\n".format(basis_gates))
-        f.write("couplingmap: {}\n".format(coupling_map))
-
+            f.write("Added simulated noise with FakeJakarta")
+        else:
+            f.write("No noise (qasm simulator)")
 
         f.close()
     print("done!")
