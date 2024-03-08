@@ -47,7 +47,7 @@ num_qub = 2
 #                          #
 ############################
 
-hamlib_ = False
+hamlib_ = True
 
 if hamlib_ == True:
     # Input to use with the qndm.hamiltonians.hydrogen package
@@ -88,10 +88,10 @@ newspop = get_SparsePauliOp(PS_QNDM, cps_QNDM) #After adding the detector
 
 #layer = rotational layers + entanglement layer
 #number of layers = rotational layers + entanglement layer
-num_l = 2
+num_l = 3
 
 #inside a layer: number of rotational layers
-lay_u = 1
+lay_u = 2
 
 #entanglement layer
 ent_gate = 0
@@ -138,7 +138,7 @@ lambda1 = 0.1
 lr = 0.2
 
 #iteration number
-iter = 10
+iter = 50
 
 
 #--------------------------------------------------------------------------------------------
