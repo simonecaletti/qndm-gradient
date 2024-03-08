@@ -19,10 +19,8 @@ from qiskit import Aer
 from qiskit_aer.noise import NoiseModel
 from qiskit.providers.fake_provider import FakeLondonV2, FakeManilaV2, FakeJakarta
 
-
 #---------------------------------------------------------------------------------------------
 #import QNDM package
-
 from qndm.hamiltonians.examples import add_detector, get_SparsePauliOp
 from qndm.core import *
 from qndm.hamiltonians.examples import get_hamiltonian
@@ -58,7 +56,6 @@ if hamlib_ == True:
     pauli_string = len(cps)
     num_qub = model["nqubit"]
   
-
 else:
 
     #select the pauli string number
@@ -70,9 +67,6 @@ else:
 
 spop = get_SparsePauliOp(PS, cps) #spop = sparse pauli operator
 
-#hamiltonians for QNDM: here we add the detector operator equal to Z
-PS_QNDM, cps_QNDM = add_detector(PS, cps)
-newspop = get_SparsePauliOp(PS_QNDM, cps_QNDM) #After adding the detector
 
 ############################
 #                          #
@@ -86,7 +80,7 @@ newspop = get_SparsePauliOp(PS_QNDM, cps_QNDM) #After adding the detector
 num_l = 2
 
 #inside a layer: number of rotational layers
-lay_u = 1
+lay_u = 2
 
 #entanglement layer
 ent_gate = 0
@@ -102,10 +96,7 @@ val_g = np.random.randint(1, 4, size=pars) #val_g = [1,1,2,2,3,3]
 val_g = np.array(val_g)
 
 #Parameters array: here there are the parameters information for each gates in U
-
 cas = np.random.rand(pars)
-
-
 
 
 #############################
@@ -127,33 +118,24 @@ noise = False
 #if noise = False --> Simulator = FakeSimulator
 #if noise = True --> Simulator = Aer
 
-#coupling parameter QNDM
-lambda1 = 0.1 
 
 
 #--------------------------------------------------------------------------------------------
 #R U N - C A R D#
-
-print_runcard(num_qub, num_l, val_g, spop, shots, lambda1, ent_gate=0,shift=np.pi/2, noise=False, output_path="./output_test")
+print_runcard(num_qub, num_l, val_g, spop, shots, ent_gate=0,shift=np.pi/2, noise=False, output_path="./output_test")
 #------------------------------------------------------------------
 
 print("Into the derivatives process...", end="")
 
 
 #array to save gradient results 
-gd_med_DM2 = np.zeros(pars)
+G_real_dm = np.zeros(pars)
 
 #gate counter
 gates_tot_dm2=np.zeros(12)
 
-
-
-
-G_real_dm = np.zeros(pars)
-
+#gradient with DM
 dm_gradient(cas ,G_real_dm, spop, num_qub, num_l, ent_gate, shift,gates_tot_dm2,noise,shots,val_g)
-
-
 
 #error calculation:
 error_DM = get_dm_error(pars, spop, shots, shift=np.pi/2)
