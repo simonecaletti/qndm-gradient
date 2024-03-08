@@ -6,6 +6,11 @@ The standard method to compute derivative is the so-called Direct Measurement al
 
 ## Installation
 
+To install the QNDM library just clone the repository using the command
+```
+test
+```
+
 
 ## Examples
 
