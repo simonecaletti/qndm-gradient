@@ -22,7 +22,6 @@ from qiskit.providers.fake_provider import FakeLondonV2, FakeManilaV2, FakeJakar
 #---------------------------------------------------------------------------------------------
 #import QNDM package
 #import QNDM package
-sys.path.insert(1, '/Users/giovanniminuto/Documents/My_codes/QNDM_release/qndm-gradient/')
 from qndm.hamiltonians.examples import add_detector, get_SparsePauliOp
 from qndm.core import *
 
@@ -140,8 +139,8 @@ print(f"Writing the RunCard...", end="")
 
 
 # Save the data to a .txt file inside the directory
-current_directory = f'/Users/giovanniminuto/Documents/My_codes/Cluster4/server_folder/test'
-run = os.path.join(current_directory,'RunCard_Der_2.txt' )
+output_path = f'./output_path'
+run = os.path.join(output_path,'RunCard_Der_2.txt' )
 
 with open(run, "w") as f:
 
@@ -272,7 +271,7 @@ df_DM['info'] = data_col
 
 
 # Save the dataframes to a CSV files
-file_path_DM = os.path.join(current_directory, f"DM_der_second.csv")
+file_path_DM = os.path.join(output_path, f"DM_der_second.csv")
 
 df_DM.to_csv(file_path_DM, index=False)
  
