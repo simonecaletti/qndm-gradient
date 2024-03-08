@@ -21,7 +21,7 @@ from qiskit.providers.fake_provider import FakeLondonV2, FakeManilaV2, FakeJakar
 
 #---------------------------------------------------------------------------------------------
 #import QNDM package
-#import QNDM package
+
 from qndm.hamiltonians.examples import add_detector, get_SparsePauliOp
 from qndm.core import *
 

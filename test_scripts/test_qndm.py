@@ -22,11 +22,14 @@ from qiskit.providers.fake_provider import FakeLondonV2, FakeManilaV2, FakeJakar
 
 #---------------------------------------------------------------------------------------------
 #import QNDM package
+
 from qndm.hamiltonians.examples import add_detector, get_SparsePauliOp
 from qndm.core import *
 
 from qndm.hamiltonians.examples import get_hamiltonian
 from qndm.hamiltonians.hydrogen import get_model
+from qndm.tools.error import get_qndm_error
+from qndm.tools.runcard import print_runcard
 
 
 
@@ -101,8 +104,7 @@ val_g = np.random.randint(1, 4, size=pars) #val_g = [1,1,2,2,3,3]
 val_g = np.array(val_g)
 
 #Parameters array: here there are the parameters information for each gates in U
-lon=10
-cas = np.random.rand(lon,pars)
+cas = np.random.rand(pars)
 
 
 
@@ -131,113 +133,25 @@ lambda1 = 0.1
 
 
 #--------------------------------------------------------------------------------------------
+#R U N - C A R D#
 
-
-#####R U N - C A R D#####
-
-
-print("Writing the RunCard...", end="")
-
-# Save the data to a .txt file inside the directory
-output_path = f'./output_test'
-run = os.path.join(output_path,'RunCard_Der.txt' )
-
-with open(run, "w") as f:
-
-    f.write(" -------------------- \n")
-    f.write("|                    |\n")
-    f.write("|  RUNCARD (Der run) |\n")
-    f.write("|                    |\n")
-    f.write(" -------------------- \n")
-    f.write("\n")
-
-    #number of qubits
-    f.write("Number of qubits = {} \n".format(num_qub))
-    f.write("\n")
-
-    #number of layers 
-    f.write("Layers = {} \n".format(num_l))
-
-    f.write("Rotation U array: {} \n".format(val_g))
-    f.write('Info: rx = 1, ry = 2, rz = 3 \n')
-
-    #entanglement gates
-    # if ent_gate = 0 ---> CNOT
-    # if ent_gate = 1 ---> SWAP
-    if ent_gate == 0:
-        f.write("Entaglment Gates are CNOTS \n")
-    if ent_gate == 1:
-        f.write("Entaglment Gates are SWAPS \n")
-    
-    #shots
-    f.write("Shots = {} \n".format(shots))
-    
-
-    f.write("Hamiltonian {} \n".format(spop))
-    f.write("\n")
-    f.write("\n")
-
-    #shift (paramenter shift rule)
-    f.write("Shift of parameter shift rule: {}\n".format(shift))
-
-    # fixed lambda QNDM
-    f.write("Lambda (QNDM coupling) = {}\n".format(lambda1))
-
-
-    #simulated NOISE
-    backend = Aer.get_backend('aer_simulator_stabilizer')
-    coupling_map = None
-    basis_gates = None
-    noise_model = None
-
-    if noise == True:
-        backend = FakeJakarta()
-        coupling_map = backend.configuration().coupling_map
-        noise_model = NoiseModel.from_backend(backend)
-        basis_gates = noise_model.basis_gates
-
-    # Select the QasmSimulator from the Aer provider
-
-    #simulator = FakeJakartaV2()
-    f.write("noise model: {} \n".format(noise_model))
-    f.write("basis gates: {}\n".format(basis_gates))
-    f.write("couplingmap: {}\n".format(coupling_map))
-
-
-    f.close()
-print("done!")
-
+print_runcard(num_qub, num_l, val_g, newspop, shots, lambda1, ent_gate=0, noise=False, output_path="./output_test")
 #------------------------------------------------------------------
 
 print("Into the derivatives process...", end="")
 
 
 #array to save gradient results 
-gd_med_QNDM = np.zeros((lon,lay_u*pars))
+G_real_qndm = np.zeros(pars*lay_u)
 
 #gate counter
 gates_tot_qndm=np.zeros(12)
 
-
-for j,in_par in enumerate(cas):
-
-    G_real_qndm = np.zeros(pars*lay_u)
-
-    qndm_gradient(lambda1, in_par ,G_real_qndm, newspop, num_qub, num_l, ent_gate, shift,gates_tot_qndm,noise,shots,val_g)
-    gd_med_QNDM[j,:] = G_real_qndm
-
+#gradient with qndm
+qndm_gradient(lambda1, cas ,G_real_qndm, newspop, num_qub, num_l, ent_gate, shift,gates_tot_qndm,noise,shots,val_g)
 
 #error calculation:
-error_QNDM = np.zeros((lon,pars*lay_u))
-    
-for i in range(pars*lay_u):
-    for j in range(lon):
-    
-        
-        error_QNDM[j,i] = (1/(2*sqrt(shots)))*(1/(sqrt(1-(sin(lambda1*sin(shift)*gd_med_QNDM[j,i]))**2)))*(1/(lambda1*sin(shift)))
-
-
-
+error_QNDM = get_qndm_error(pars, G_real_qndm, lambda1, shots, shift)
 
 
 print(" done!")
@@ -250,21 +164,19 @@ print(" done!")
 
 
 #QNDM dataframe
-QNDM_data = np.concatenate((cas, gd_med_QNDM), axis=1)
-QNDM_data = np.concatenate((QNDM_data, error_QNDM), axis=1)
-
-
+QNDM_data = {
+    'Parameters': cas,
+    'Derivatives': G_real_qndm,
+    'Errors': error_QNDM
+}
 df_QNDM = pd.DataFrame(QNDM_data)
-# Adding a column with quantum info
-info_qs = np.array([num_qub,num_l,pauli_string,shots,lambda1,lon])
-data_col = np.zeros(lon)
-data_col[:len(info_qs)] = info_qs
-df_QNDM['info'] = data_col
 
 
 # Save the dataframes to a CSV files
+output_path = "./output_test"
 QNDM_path = os.path.join(output_path,'QNDM_der_0.csv' )
 
 
 df_QNDM.to_csv(QNDM_path, index=False)
  
+
