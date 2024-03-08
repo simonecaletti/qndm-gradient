@@ -8,8 +8,15 @@ The standard method to compute derivative is the so-called Direct Measurement al
 
 To install the QNDM library just clone the repository using the command
 ```
-test
+git clone https://github.com/simonecaletti/qndm-gradient.git 
 ```
+All the function for the QNDM algorithm are defined in the *qndm/* folder. The *test_scripts/* folder instead contains a set of scripts with some simple tests, like QNDM and DM derivatives evaluation and optimization tasks.
+
+To use the interface with the hamlib library [arXiv:2306.13126](https://arxiv.org/abs/2306.13126) you need to install the *mat2qubit* package. The instruction are contained in the *hdf5-install.sh* script, so just run 
+```
+bash hdf5-install.sh
+```
+
 
 
 ## Examples
