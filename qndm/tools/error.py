@@ -17,7 +17,7 @@ def get_qndm_error(pars, G_real_qndm, lambda1, shots, shift=np.pi/2):
     error = np.zeros(pars)
     
     for i in range(pars):
-        error[i] = (1/(2*sqrt(shots)))*(1/(sqrt(1-(sin(lambda1*sin(shift)*G_real_qndm[i]))**2)))*(1/(lambda1*sin(shift)))
+        error[i] = (1/(2*np.sqrt(shots)))*(1/(np.sqrt(1-(np.sin(lambda1*np.sin(shift)*G_real_qndm[i]))**2)))*(1/(lambda1*np.sin(shift)))
     
     return error
 
@@ -25,7 +25,7 @@ def get_qndm_error(pars, G_real_qndm, lambda1, shots, shift=np.pi/2):
 #DM error
 def get_dm_error(pars, spop, shots, shift=np.pi/2):
     error = np.zeros(pars)
-    error[:] = (1/(sqrt(2*shots)*sin(shift)))*sum(np.real(np.asarray(spop.coeffs)))
+    error[:] = (1/(np.sqrt(2*shots)*np.sin(shift)))*sum(np.real(np.asarray(spop.coeffs)))
     
     return error
 
