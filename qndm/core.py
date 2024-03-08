@@ -123,7 +123,7 @@ def qndm_gradient(lambda1, in_par ,G_real_qndm, newspop, num_qub, num_l, ent_gat
 
     
     for shift_position in range(len(val_g)):
-        qndm_derivative(lambda1, in_par ,shift_position, newspop, num_qub, num_l, ent_gate, shift, G_real_qndm,gates_tot_qndm,shots,noise,val_g, simp)
+        qndm_derivative(lambda1, in_par ,shift_position, newspop, num_qub, num_l, ent_gate, shift, G_real_qndm,shots,noise,val_g, simp)
 
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -242,7 +242,7 @@ def dm_gradient(in_par ,G_real_dm2, spop, num_qub, num_l, ent_gate,shift,noise,s
                 if shift_sign == 1:
                     shift *=-1 
                         
-                dm_derivative(in_par,shift_position, num_qub, num_l, ent_gate,shift, kk,val_g,shots,gates_tot_dm2,G_real_dm2,noise,spop.coeffs,k)
+                dm_derivative(in_par,shift_position, num_qub, num_l, ent_gate,shift, kk,val_g,shots,G_real_dm2,noise,spop.coeffs,k)
             shift = abs(shift)
 
     return None 
