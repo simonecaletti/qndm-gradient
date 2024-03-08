@@ -47,8 +47,8 @@ def qndm_derivative(p_deco, initial_pameter,shift_position,newspop,num_qub,num_l
     bc = QuantumCircuit(q_reg, c_reg, name="QNDM")
 
     #hamiltonian normalization
-    norm_coeff = get_coeffs_norm(newspop) 
-
+    norm_coeff = get_coeffs_norm(newspop)  
+    
     #quantum circuit: "QNDM for gradient"
     qndm_gradient_circuit(bc, shift_position,newspop,num_qub,num_l,val_g,detect_index,shift, simp,ent_gate)
     
@@ -62,6 +62,7 @@ def qndm_derivative(p_deco, initial_pameter,shift_position,newspop,num_qub,num_l
 
     # measure the detector qubit
     circ.measure(detect_index, 0)
+    #print(circ)
 
     # Quantum gates Counter
     #q_counter(gates_tot_qndm,circ.decompose().decompose().decompose())
@@ -155,8 +156,7 @@ def dm_derivative(initial_pameter,shift_position,num_qub,num_l, ent_gate, shift,
       initial_values.append(initial_pameter[i])
 
     param_dict = dict(zip(bc.parameters, initial_values))
-    circ=bc.bind_parameters(param_dict)
-        
+    circ=bc.bind_parameters(param_dict) 
 
     # measure the system qubits
     qubit_index = []
@@ -166,9 +166,8 @@ def dm_derivative(initial_pameter,shift_position,num_qub,num_l, ent_gate, shift,
       qubit_index.append(num_qub-i-1)
       qubit_index2.append(i)
 
-
     circ.measure(qubit_index, qubit_index2)
-    
+    print(circ)    
    
     # Quantum gates Counter
     #    q_counter(gates_tot_dm2,circ.decompose().decompose().decompose())

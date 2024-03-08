@@ -64,7 +64,7 @@ if hamlib_ == True:
 else:
 
     #select the pauli string number
-    pauli_string = 2
+    pauli_string = 1
 
     #hamiltonians M
     PS, cps = get_hamiltonian(num_qub, pauli_string)
@@ -101,11 +101,11 @@ pars=lay_u*num_l*num_qub
 #Rotational array: here there are the gates information to implent unitary trasformation U
 #code: rx = 1, ry = 2, rz = 3
 val_g = np.random.randint(1, 4, size=pars) #val_g = [1,1,2,2,3,3]
-val_g = np.array(val_g)
+#val_g = np.array([1, 2, 3, 2, 3, 1, 2, 3])
 
 #Parameters array: here there are the parameters information for each gates in U
-cas = np.random.rand(pars)
-
+#cas = np.random.rand(pars)
+cas = np.array([1, 2, 3, 6, 5, 4, 3, 1])
 
 
 
