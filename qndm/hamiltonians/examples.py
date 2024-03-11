@@ -46,5 +46,6 @@ def get_hamiltonian(n_qub, sel): #select the hamitonian op from some examples
 
                 PS.append(random_string)
                 cps.append(prob_string)
+              
 
             return PS, cps

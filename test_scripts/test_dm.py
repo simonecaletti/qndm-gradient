@@ -31,35 +31,37 @@ from qndm.tools.runcard import print_runcard
 
 #---------------------------------------------------------------------------------------------
 
-#number of qubit of the quantum register
-num_qub = 2
-
 ############################
 #                          #
 #      Hamiltonian M       #
 #                          #
 ############################
 
-hamlib_ = False
+hamlib_ = True
 
 if hamlib_ == True:
     # Input to use with the qndm.hamiltonians.hydrogen package
+    n = 2 # atoms count
     shape = 'linear' # linear, pyramid, ring, sheet
     r = 0.6 # between 0.5 and 2.0 (step 0.1)
     key = "/ham_BK/"
     
     #get the model (we need for first because sets nqubit)
-    model = get_model(num_qub, shape, r, key)
+    model = get_model(n, shape, r, key)
 
     PS = model["PS"]
     cps = model["cps"]
     pauli_string = len(cps)
     num_qub = model["nqubit"]
   
+
 else:
 
+    #number of qubit of the quantum register
+    num_qub = 4
+
     #select the pauli string number
-    pauli_string = 1
+    pauli_string = 2
 
     #hamiltonians M
     PS, cps = get_hamiltonian(num_qub, pauli_string)
@@ -67,6 +69,9 @@ else:
 
 spop = get_SparsePauliOp(PS, cps) #spop = sparse pauli operator
 
+#hamiltonians for QNDM: here we add the detector operator equal to Z
+PS_QNDM, cps_QNDM = add_detector(PS, cps)
+newspop = get_SparsePauliOp(PS_QNDM, cps_QNDM) #After adding the detector
 
 ############################
 #                          #
@@ -77,10 +82,10 @@ spop = get_SparsePauliOp(PS, cps) #spop = sparse pauli operator
 
 #layer = rotational layers + entanglement layer
 #number of layers = rotational layers + entanglement layer
-num_l = 2
+num_l = 4
 
 #inside a layer: number of rotational layers
-lay_u = 2
+lay_u = 1
 
 #entanglement layer
 ent_gate = 0
@@ -93,11 +98,11 @@ pars=lay_u*num_l*num_qub
 #Rotational array: here there are the gates information to implent unitary trasformation U
 #code: rx = 1, ry = 2, rz = 3
 val_g = np.random.randint(1, 4, size=pars) #val_g = [1,1,2,2,3,3]
-#val_g = np.array([1, 2, 3, 2, 3, 1, 2, 3])
 
 #Parameters array: here there are the parameters information for each gates in U
 cas = np.random.rand(pars)
-#cas = np.array([1, 2, 3, 6, 5, 4, 3, 1])
+
+
 
 #############################
 #                           #
@@ -118,7 +123,8 @@ noise = False
 #if noise = False --> Simulator = FakeSimulator
 #if noise = True --> Simulator = Aer
 
-
+#coupling parameter QNDM
+lambda1 = 0.1 
 
 #--------------------------------------------------------------------------------------------
 #R U N - C A R D#

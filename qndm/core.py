@@ -10,7 +10,7 @@ from qndm.derivatives.gradient.qndm import qndm_gradient_circuit
 from qndm.derivatives.gradient.dm import dm_gradient_circuit
 from qndm.derivatives.hessian.qndm import qndm_hessian_circuit
 from qndm.derivatives.hessian.dm import dm_hessian_circuit
-from qndm.hamiltonians.normalization.coeff_norm import get_coeffs_norm
+from qndm.hamiltonians.normalization.lam_balancing import get_lambda_balancing
 from qndm.tools.counting import q_counter
 
 import random
@@ -34,7 +34,7 @@ from math import asin
 #//////////#
 
 #QNDM
-def qndm_derivative(p_deco, initial_pameter,shift_position,newspop,num_qub,num_l, ent_gate,shift,G_real_qndm,shots,noise,val_g,simp): 
+def qndm_derivative(lambda1, initial_pameter,shift_position,newspop,num_qub,num_l, ent_gate,shift,G_real_qndm,shots,noise,val_g,simp): 
 
     # Setup qubit register
     q_reg_size = num_qub + 1 #numbers of qubit (sys + det)
@@ -46,14 +46,14 @@ def qndm_derivative(p_deco, initial_pameter,shift_position,newspop,num_qub,num_l
     c_reg = ClassicalRegister(q_reg_size_c, "c")
     bc = QuantumCircuit(q_reg, c_reg, name="QNDM")
 
-    #hamiltonian normalization
-    norm_coeff = get_coeffs_norm(newspop)  
-    
+    #balacing of lambda in function of hamiltonian
+    lambda1 = get_lambda_balancing(newspop,lambda1)  
+
     #quantum circuit: "QNDM for gradient"
     qndm_gradient_circuit(bc, shift_position,newspop,num_qub,num_l,val_g,detect_index,shift, simp,ent_gate)
     
     #parameters initialization
-    initial_values = [p_deco/2,p_deco/2]
+    initial_values = [lambda1/2,lambda1/2]
     for i in range(len(initial_pameter)):
         initial_values.append(initial_pameter[i])
 
@@ -62,7 +62,6 @@ def qndm_derivative(p_deco, initial_pameter,shift_position,newspop,num_qub,num_l
 
     # measure the detector qubit
     circ.measure(detect_index, 0)
-    #print(circ)
 
     # Quantum gates Counter
     #q_counter(gates_tot_qndm,circ.decompose().decompose().decompose())
@@ -95,7 +94,7 @@ def qndm_derivative(p_deco, initial_pameter,shift_position,newspop,num_qub,num_l
 
     #calculate value of derivative in one direction  
     from math import sqrt,asin,sin
-    G_real_qndm[shift_position] = norm_coeff*asin(2*p1-1)/(2*p_deco)
+    G_real_qndm[shift_position] = asin(2*p1-1)/(2*(lambda1))
 
     return None 
 
@@ -167,7 +166,7 @@ def dm_derivative(initial_pameter,shift_position,num_qub,num_l, ent_gate, shift,
       qubit_index2.append(i)
 
     circ.measure(qubit_index, qubit_index2)
-    print(circ)    
+    #print(circ)    
    
     # Quantum gates Counter
     #    q_counter(gates_tot_dm2,circ.decompose().decompose().decompose())
@@ -259,7 +258,7 @@ def dm_gradient(in_par ,G_real_dm2, spop, num_qub, num_l, ent_gate,shift,noise,s
 #   main   #
 #//////////#
 
-def qndm_derivative_hessian(p_deco, initial_pameter,shift_position,sh2,pm,num_qub,num_l,ent_gate,shift,G_real_qndm,H_real_qndm,gates_tot_qndm_hess,shots,noise,val_g,simp, gradient_calc): 
+def qndm_derivative_hessian(lambda1, initial_pameter,shift_position,sh2,newspop,num_qub,num_l,ent_gate,shift,G_real_qndm,H_real_qndm,gates_tot_qndm_hess,shots,noise,val_g,simp, gradient_calc): 
 
     # Setup qubit register
     q_reg_size = num_qub + 1 #numbers of qubit
@@ -271,13 +270,16 @@ def qndm_derivative_hessian(p_deco, initial_pameter,shift_position,sh2,pm,num_qu
     q_reg = QuantumRegister(q_reg_size, "q")
     c_reg = ClassicalRegister(q_reg_size_c, "c")
 
+    #balacing of lambda in function of hamiltonian
+    lambda1 = get_lambda_balancing(newspop,lambda1)  
+
     if gradient_calc == True:
         #gradient
         bc = QuantumCircuit(q_reg, c_reg, name="QNDM")
         #quantum circuit: "QNDM for gradient"
-        qndm_hessian_circuit(bc, shift_position,pm,num_qub,num_l,val_g,detect_index,shift, simp,ent_gate)
+        qndm_hessian_circuit(bc, shift_position,newspop,num_qub,num_l,val_g,detect_index,shift, simp,ent_gate)
         #parameters initialization
-        initial_values = [p_deco/2,p_deco/2]
+        initial_values = [lambda1/2,lambda1/2]
 
         for i in range(len(initial_pameter)):
             initial_values.append(initial_pameter[i])
@@ -315,17 +317,17 @@ def qndm_derivative_hessian(p_deco, initial_pameter,shift_position,sh2,pm,num_qu
                     p1 += data[l]/shots # probability of |1> in the detector state
         
             #calculate value of hessian   
-            G_real_qndm[shift_position] = asin(2*p1-1)/(2*sin(shift)*p_deco)
+            G_real_qndm[shift_position] = asin(2*p1-1)/(2*sin(shift)*lambda1)
 
 
 
     #hessian
     bc_hess = QuantumCircuit(q_reg, c_reg, name="QNDM_hess")
     #quantum circuit: "QNDM for hessian"
-    qndm_hessian_circuit(bc_hess, shift_position,sh2,pm,num_qub,num_l,detect_index,shift,val_g, simp,ent_gate)
+    qndm_hessian_circuit(bc_hess, shift_position,sh2,newspop,num_qub,num_l,detect_index,shift,val_g, simp,ent_gate)
     
     #parameters initialization
-    initial_values_hess = [p_deco/2,p_deco/2,p_deco/2,p_deco/2]
+    initial_values_hess = [lambda1/2,lambda1/2,lambda1/2,lambda1/2]
 
     for i in range(len(val_g)):
       initial_values_hess.append(initial_pameter[i])
@@ -376,7 +378,7 @@ def qndm_derivative_hessian(p_deco, initial_pameter,shift_position,sh2,pm,num_qu
            p1_hess += data[l]/shots # probability of |1> in the detector state
               
     #calculate value of hessian   
-    H_real_qndm[shift_position,sh2] = asin(2*p1_hess-1)/(4*sin(shift)**2*p_deco)
+    H_real_qndm[shift_position,sh2] = asin(2*p1_hess-1)/(4*sin(shift)**2*lambda1)
     
 
     return
