@@ -417,3 +417,64 @@ def U4_hess(val_g,par_var,num_qu,num_l,shift_pos,sh2,shift,ent_gate):
           for j in range(r_cx-(num_qu+1)%2):
             ent[ent_gate](2*j+1)
     return circ
+
+#DM
+
+def U1_hess_DM(val_g,par_var,num_qu,num_l,shift1,shift2,sh1,sh2,ent_gate):
+  q_reg = QuantumRegister(num_qu, "q")
+  circ = QuantumCircuit(q_reg, name="layer-")
+
+#rotation part
+  for k in range(val_g.shape[0]): 
+    if val_g[k]==1:
+      if k == sh1 and k == sh2:
+        circ.rx(par_var[k]-(shift1+shift2),k%num_qu)
+      elif k == sh1:
+        circ.rx(par_var[k]-shift1,k%num_qu)
+
+      elif k == sh2:
+        circ.rx(par_var[k]-shift2,k%num_qu) 
+
+      else:  
+        circ.rx(par_var[k],k%num_qu)
+
+    elif val_g[k]==2:
+
+      if k == sh1 and k == sh2:
+        circ.ry(par_var[k]-(shift1+shift2),k%num_qu)
+
+      elif k == sh1:
+        circ.ry(par_var[k]-shift1,k%num_qu)
+
+      elif k == sh2:
+        circ.ry(par_var[k]-shift2,k%num_qu)
+
+      else: 
+        circ.ry(par_var[k],k%num_qu)
+    elif val_g[k]==3:
+
+      if k == sh1 and k == sh2:
+        circ.rz(par_var[k]-(shift1+shift2),k%num_qu)
+
+      elif k == sh1:
+        circ.rz(par_var[k]-shift1,k%num_qu)
+
+      elif k == sh2:
+        circ.rz(par_var[k]-shift2,k%num_qu)
+
+      else: 
+        circ.rz(par_var[k],k%num_qu)
+
+    
+#entanglement part
+    if  k !=0 and (k+1)%(len(val_g)/(num_l)) == 0: 
+      ent = [lambda x:circ.cx(x, x+1),lambda x:circ.swap(x, x+1)]
+
+      if num_qu!=1:
+        r_cx = int(num_qu/2)
+        for ii in range(r_cx):
+            ent[ent_gate](ii*2)
+        if num_qu>2:
+          for j in range(r_cx-(num_qu+1)%2):
+            ent[ent_gate](2*j+1)
+  return circ

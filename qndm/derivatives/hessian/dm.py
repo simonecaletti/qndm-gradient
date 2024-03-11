@@ -15,7 +15,7 @@ def dm_hessian_circuit(circ,sh1,sh2,num_qub,num_l,val_g,shift1,shift2,kk,ent_gat
   for i in range(num_qub):
     qubits.append(i)
 
-  l_d = U1_hess(val_g,params,num_qub,num_l,shift1,shift2,sh1,sh2,ent_gate)
+  l_d = U1_hess_DM(val_g,params,num_qub,num_l,shift1,shift2,sh1,sh2,ent_gate)
   
   circ.compose(l_d, qubits=qubits, inplace=True)
   
