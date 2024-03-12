@@ -22,6 +22,7 @@ def dm_gradient_circuit(circ,shift_position,num_qub,num_l,val_g,shift,kk,ent_gat
   
   #observable
   gate_dm = [gate_dm for gate_dm in kk]
+  print(gate_dm)
   for i,val_h in enumerate(gate_dm):
 
     if str(val_h) == 'X':

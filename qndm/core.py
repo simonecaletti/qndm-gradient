@@ -62,6 +62,7 @@ def qndm_derivative(lambda1, initial_pameter,shift_position,newspop,num_qub,num_
 
     # measure the detector qubit
     circ.measure(detect_index, 0)
+    print(circ)
  
     #simulated NOISE
     #backend = Aer.get_backend('aer_simulator_stabilizer')
@@ -97,13 +98,13 @@ def qndm_derivative(lambda1, initial_pameter,shift_position,newspop,num_qub,num_
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 # Gradient calculation QNDM
-def qndm_gradient(lambda1, in_par ,G_real_qndm, newspop, num_qub, num_l, ent_gate,shift,noise,shots,val_g, simp = False):
+def qndm_gradient(lambda1, pars ,G_real_qndm, newspop, num_qub, num_l, ent_gate,shift,noise,shots,val_g, simp = False):
 
     """Calculate first order derivatives with QNDM method. \n
 
     #Paramenters: \n
     lambda1 -- Value of coupling paramenter
-    in_par -- Parameters of the rotational gates \n
+    pars -- Parameters of the rotational gates \n
     G_real_qndm -- Empty array where the function put the derivatives information \n
     newspop -- Hamiltonian \n
     num_qub -- Number of Qubits \n
@@ -118,7 +119,7 @@ def qndm_gradient(lambda1, in_par ,G_real_qndm, newspop, num_qub, num_l, ent_gat
 
     
     for shift_position in range(len(val_g)):
-        qndm_derivative(lambda1, in_par ,shift_position, newspop, num_qub, num_l, ent_gate, shift, G_real_qndm,shots,noise,val_g, simp)
+        qndm_derivative(lambda1, pars ,shift_position, newspop, num_qub, num_l, ent_gate, shift, G_real_qndm,shots,noise,val_g, simp)
 
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -161,7 +162,7 @@ def dm_derivative(initial_pameter,shift_position,num_qub,num_l, ent_gate, shift,
       qubit_index2.append(i)
 
     circ.measure(qubit_index, qubit_index2)
-    #print(circ)    
+    print(circ)    
 
         #simulated NOISE
     backend = BasicAer.get_backend('qasm_simulator')
@@ -208,11 +209,11 @@ def dm_derivative(initial_pameter,shift_position,num_qub,num_l, ent_gate, shift,
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 # Gradient calculation DM 
-def dm_gradient(in_par ,G_real_dm, spop, num_qub, num_l, ent_gate,shift,noise,shots,val_g):
+def dm_gradient(pars ,G_real_dm, spop, num_qub, num_l, ent_gate,shift,noise,shots,val_g):
     """Calculate first order derivatives with Direct Measurament method. \n
 
     #Paramenters: \n
-    in_par -- Parameters of the rotational gates \n
+    pars -- Parameters of the rotational gates \n
     G_real_dm -- Empty array where the function put the derivatives information \n
     spop -- Hamiltonian \n
     num_qub -- Number of Qubits \n
@@ -230,7 +231,7 @@ def dm_gradient(in_par ,G_real_dm, spop, num_qub, num_l, ent_gate,shift,noise,sh
                 if shift_sign == 1:
                     shift *=-1 
                         
-                dm_derivative(in_par,shift_position, num_qub, num_l, ent_gate,shift, kk,val_g,shots,G_real_dm,noise,spop.coeffs,k)
+                dm_derivative(pars,shift_position, num_qub, num_l, ent_gate,shift, kk,val_g,shots,G_real_dm,noise,spop.coeffs,k)
             shift = abs(shift)
 
     return None 
@@ -261,7 +262,8 @@ def qndm_derivative_hessian(lambda1, initial_pameter,shift_position,sh2,newspop,
     c_reg = ClassicalRegister(q_reg_size_c, "c")
 
     #balacing of lambda in function of hamiltonian
-    lambda1 = get_lambda_balancing(newspop,lambda1)  
+    lambda1 = get_lambda_balancing(newspop,lambda1) 
+    #print(lambda1)
 
     #hessian
     bc_hess = QuantumCircuit(q_reg, c_reg, name="QNDM_hess")
@@ -328,12 +330,12 @@ def qndm_derivative_hessian(lambda1, initial_pameter,shift_position,sh2,newspop,
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 # Hessian calculation QNDM
-def qndm_hessian(lambda1, in_par ,G_real_qndm, H_real_qndm, newspop, num_qub, num_l, ent_gate, shift,noise,shots,val_g,simp = False, gradient_calc = False):
+def qndm_hessian(lambda1, pars ,G_real_qndm, H_real_qndm, newspop, num_qub, num_l, ent_gate, shift,noise,shots,val_g,simp = False, gradient_calc = False):
     """Calculate Second order derivatives with QNDM method. \n
 
     #Paramenters: \n
     lambda1 -- Value of coupling paramenter
-    in_par -- Parameters of the rotational gates \n
+    pars -- Parameters of the rotational gates \n
     G_real_qndm -- Empty array where the function put the first derivatives information \n
     H_real_qndm -- Empty array where the function put the second derivatives information \n
     newspop -- Hamiltonian \n
@@ -350,7 +352,7 @@ def qndm_hessian(lambda1, in_par ,G_real_qndm, H_real_qndm, newspop, num_qub, nu
  
     for sh1 in range(len(val_g)):
         for sh2 in range(len(val_g)):
-            qndm_derivative_hessian(lambda1, in_par,sh1,sh2,newspop,num_qub,num_l,ent_gate,shift,G_real_qndm,H_real_qndm,shots,noise,val_g,simp, gradient_calc)
+            qndm_derivative_hessian(lambda1, pars,sh1,sh2,newspop,num_qub,num_l,ent_gate,shift,G_real_qndm,H_real_qndm,shots,noise,val_g,simp, gradient_calc)
             
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -387,7 +389,6 @@ def dm_derivative_hessian(initial_pameter,sh1,sh2,num_qub,num_l,ent_gate,shift1,
 
     param_dict = dict(zip(bc_hess.parameters, initial_values))
     circ_hess=bc_hess.bind_parameters(param_dict)
-        
 
     # measure the system qubits
     qubit_index = []
@@ -399,7 +400,7 @@ def dm_derivative_hessian(initial_pameter,sh1,sh2,num_qub,num_l,ent_gate,shift1,
 
 
     circ_hess.measure(qubit_index, qubit_index2)
-    #print(circ_hess)
+    print(circ_hess)
     #print(circ_hess.decompose().decompose().decompose())
 
 
@@ -460,13 +461,12 @@ def dm_derivative_hessian(initial_pameter,sh1,sh2,num_qub,num_l,ent_gate,shift1,
     return
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 # Hessian calculation QNDM
-def dm_hessian(in_par ,G_real_dm, H_real_dm, PS, num_qub, num_l,ent_gate, shift,noise,shots,val_g,cps, gradient_calc = False):
-
+def dm_hessian(pars ,G_real_dm, H_real_dm, spop, num_qub, num_l,ent_gate, shift,noise,shots,val_g, gradient_calc = False):
     """Calculate Second order derivatives with DM method. \n
 
     #Paramenters: \n
 
-    in_par -- Parameters of the rotational gates \n
+    pars -- Parameters of the rotational gates \n
     G_real_qndm -- Empty array where the function put the first derivatives information \n
     H_real_qndm -- Empty array where the function put the second derivatives information \n
     PS -- Pauli string \n 
@@ -481,7 +481,7 @@ def dm_hessian(in_par ,G_real_dm, H_real_dm, PS, num_qub, num_l,ent_gate, shift,
 
     for sh1 in range(len(val_g)):
         for sh2 in range(len(val_g)):
-            for k,kk in enumerate(PS):
+            for k,kk in enumerate(spop.paulis):
                 #sign of shift
                 for shift_sign in range(4):
                     shift1 = shift
@@ -498,4 +498,4 @@ def dm_hessian(in_par ,G_real_dm, H_real_dm, PS, num_qub, num_l,ent_gate, shift,
                         shift2 = -shift
 
 
-                    dm_derivative_hessian(in_par,sh1,sh2,num_qub,num_l,ent_gate,shift1,shift2,kk,val_g,shots,G_real_dm, H_real_dm,noise,cps,k, gradient_calc)
+                    dm_derivative_hessian(pars,sh1,sh2,num_qub,num_l,ent_gate,shift1,shift2,kk,val_g,shots,G_real_dm, H_real_dm,noise,spop.coeffs,k, gradient_calc)

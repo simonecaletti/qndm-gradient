@@ -131,8 +131,8 @@ def U2_hess(val_g,par_var,num_qu,num_l,shift_pos,sh2,shift,ent_gate):
 
     for k in range(val_g.shape[0]): 
     #rotation part
-        sig = -1
-        if val_g[k]==1:
+      sig = -1
+      if val_g[k]==1:
             if sh2 == shift_pos and k == sh2:
                 circ.rx(par_var[k]-2*shift,k%num_qu)
             elif k == shift_pos:
@@ -144,7 +144,7 @@ def U2_hess(val_g,par_var,num_qu,num_l,shift_pos,sh2,shift,ent_gate):
                 circ.rx(par_var[k],k%num_qu)
 
 
-        elif val_g[k]==2:
+      elif val_g[k]==2:
             if sh2 == shift_pos and k == sh2:
                 circ.ry(par_var[k]-2*shift,k%num_qu)
             elif k == shift_pos:
@@ -155,7 +155,7 @@ def U2_hess(val_g,par_var,num_qu,num_l,shift_pos,sh2,shift,ent_gate):
             else:  
                 circ.ry(par_var[k],k%num_qu)
 
-        elif val_g[k]==3:
+      elif val_g[k]==3:
             if sh2 == shift_pos and k == sh2:
                 circ.rz(par_var[k]-2*shift,k%num_qu)
             elif k == shift_pos:
@@ -167,7 +167,7 @@ def U2_hess(val_g,par_var,num_qu,num_l,shift_pos,sh2,shift,ent_gate):
                 circ.rz(par_var[k],k%num_qu)
 
     #entanglement part
-    if  k !=0 and (k+1)%(len(val_g)/(num_l)) == 0:
+      if  k !=0 and (k+1)%(len(val_g)/(num_l)) == 0:
         ent = [lambda x:circ.cx(x, x+1),lambda x:circ.swap(x, x+1)]
         if num_qu!=1:
             r_cx = int(num_qu/2)
@@ -416,7 +416,7 @@ def U4_hess(val_g,par_var,num_qu,num_l,shift_pos,sh2,shift,ent_gate):
         if num_qu>2:
           for j in range(r_cx-(num_qu+1)%2):
             ent[ent_gate](2*j+1)
-    return circ
+  return circ
 
 #DM
 

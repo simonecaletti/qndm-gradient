@@ -23,7 +23,7 @@ from qiskit.providers.fake_provider import FakeLondonV2, FakeManilaV2, FakeJakar
 
 #---------------------------------------------------------------------------------------------
 #import QNDM package
-sys.path.insert(1, '/Users/giovanniminuto/Documents/My_codes/QNDM_release/qndm-gradient')
+
 
 from qndm.hamiltonians.examples import add_detector, get_SparsePauliOp
 from qndm.core import *
@@ -98,14 +98,14 @@ ent_gate = 0
 # if ent_gate = 1 ---> SWAP
 
 #total number of parameters per qubit
-pars=lay_u*num_l*num_qub 
+n_pars=lay_u*num_l*num_qub 
 
 #Rotational array: here there are the gates information to implent unitary trasformation U
 #code: rx = 1, ry = 2, rz = 3
-val_g = np.random.randint(1, 4, size=pars) #val_g = [1,1,2,2,3,3]
+val_g = np.random.randint(1, 4, size=n_pars) #val_g = [1,1,2,2,3,3]
 
 #Parameters array: here there are the parameters information for each gates in U
-cas = np.random.rand(pars)
+pars = np.random.rand(n_pars)
 
 
 
@@ -141,17 +141,17 @@ print_runcard(num_qub, num_l, val_g, newspop, shots, lambda1, ent_gate=0, noise=
 print("Into the derivatives process...", end="")
 
 
-#Gradient DM
-G_real_qndm = np.zeros(pars)
-#Hessian DM
-H_real_qndm = np.zeros((pars,pars))
+#Gradient QNDM
+G_real_qndm = np.zeros(n_pars)
+#Hessian QNDM
+H_real_qndm = np.zeros((n_pars,n_pars))
    
 
-qndm_hessian(lambda1, cas ,G_real_qndm, H_real_qndm, newspop, num_qub, num_l, ent_gate, shift,noise,shots,val_g)
+qndm_hessian(lambda1, pars ,G_real_qndm, H_real_qndm, newspop, num_qub, num_l, ent_gate, shift,noise,shots,val_g)
     
 
 #error calculation:
-error_QNDM = get_qndm_error_second(pars, H_real_qndm, lambda1, shots, shift)
+error_QNDM = get_qndm_error_second(n_pars, H_real_qndm, lambda1, shots, shift)
 
 
 

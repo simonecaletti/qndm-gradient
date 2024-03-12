@@ -98,14 +98,14 @@ ent_gate = 0
 # if ent_gate = 1 ---> SWAP
 
 #total number of parameters per qubit
-pars=lay_u*num_l*num_qub 
+n_pars=lay_u*num_l*num_qub 
 
 #Rotational array: here there are the gates information to implent unitary trasformation U
 #code: rx = 1, ry = 2, rz = 3
-val_g = np.random.randint(1, 4, size=pars) #val_g = [1,1,2,2,3,3]
+val_g = np.random.randint(1, 4, size=n_pars) #val_g = [1,1,2,2,3,3]
 
 #Parameters array: here there are the parameters information for each gates in U
-cas = np.random.rand(pars)
+pars = np.random.rand(n_pars)
 
 
 
@@ -141,17 +141,17 @@ print("Into the derivatives process...", end="")
 
 
 #Gradient DM
-G_real_dm = np.zeros(pars)
+G_real_dm = np.zeros(n_pars)
 #Hessian DM
-H_real_dm = np.zeros((pars,pars))
+H_real_dm = np.zeros((n_pars,n_pars))
    
 
-dm_hessian(cas ,G_real_dm, H_real_dm, PS, num_qub, num_l, ent_gate,shift,noise,shots,val_g,cps)
+dm_hessian(pars ,G_real_dm, H_real_dm, spop, num_qub, num_l, ent_gate,shift,noise,shots,val_g)
 
     
 
 #error calculation:
-error_DM = get_dm_error_second(pars, spop, shots, shift)
+error_DM = get_dm_error_second(n_pars, spop, shots, shift)
 
 print(" done!")
 

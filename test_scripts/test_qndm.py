@@ -23,6 +23,7 @@ from qiskit.providers.fake_provider import FakeLondonV2, FakeManilaV2, FakeJakar
 #---------------------------------------------------------------------------------------------
 #import QNDM package
 
+
 from qndm.hamiltonians.examples import add_detector, get_SparsePauliOp
 from qndm.core import *
 
@@ -97,14 +98,14 @@ ent_gate = 0
 # if ent_gate = 1 ---> SWAP
 
 #total number of parameters per qubit
-pars=lay_u*num_l*num_qub 
+n_pars=lay_u*num_l*num_qub 
 
 #Rotational array: here there are the gates information to implent unitary trasformation U
 #code: rx = 1, ry = 2, rz = 3
-val_g = np.random.randint(1, 4, size=pars) #val_g = [1,1,2,2,3,3]
+val_g = np.random.randint(1, 4, size=n_pars) #val_g = [1,1,2,2,3,3]
 
 #Parameters array: here there are the parameters information for each gates in U
-cas = np.random.rand(pars)
+pars = np.random.rand(n_pars)
 
 
 
@@ -140,13 +141,16 @@ print("Into the derivatives process...", end="")
 
 
 #array to save gradient results 
-G_real_qndm = np.zeros(pars)
+G_real_qndm = np.zeros(n_pars)
+
+#gate counter
+gates_tot_qndm=np.zeros(12)
 
 #gradient with qndm
-qndm_gradient(lambda1, cas ,G_real_qndm, newspop, num_qub, num_l, ent_gate, shift,noise,shots,val_g)
+qndm_gradient(lambda1, pars ,G_real_qndm, newspop, num_qub, num_l, ent_gate, shift,gates_tot_qndm,noise,shots,val_g)
 
 #error calculation:
-error_QNDM = get_qndm_error(pars, G_real_qndm, lambda1, shots, shift)
+error_QNDM = get_qndm_error(n_pars, G_real_qndm, lambda1, shots, shift)
 
 
 print(" done!")
@@ -160,7 +164,7 @@ print(" done!")
 
 #QNDM dataframe
 QNDM_data = {
-    'Parameters': cas,
+    'Parameters': pars,
     'Derivatives': G_real_qndm,
     'Errors': error_QNDM
 }

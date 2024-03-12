@@ -21,20 +21,21 @@ def dm_hessian_circuit(circ,sh1,sh2,num_qub,num_l,val_g,shift1,shift2,kk,ent_gat
   
   #observable
   gate_dm = [gate_dm for gate_dm in kk]
+  print(gate_dm)
   for i,val_h in enumerate(gate_dm):
-    if val_h == 'X':
-      circ.h(num_qub-1-i)
-      
-    elif val_h == 'Y':
-      circ.sdg(num_qub-1-i)
-      circ.h(num_qub-1-i)
 
-    elif val_h == 'Z':
+    if str(val_h) == 'X':
+      circ.h(i)
+      
+    elif str(val_h) == 'Y':
+      circ.sdg(i)
+      circ.h(i)
+
+    elif str(val_h) == 'Z':
       pass
-    elif val_h == 'I':
+    elif str(val_h) == 'I':
       pass
     else:
-      raise ValueError("You are not reading well spop!")
+      raise ValueError("you are not reading well spop")
       
-
   return None
