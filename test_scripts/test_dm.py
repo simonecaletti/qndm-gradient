@@ -140,10 +140,19 @@ print("Into the derivatives process...", end="")
 G_real_dm = np.zeros(n_pars)
 
 #gate counter
-gates_tot_dm2=np.zeros(12)
+#gates_tot_dm2=np.zeros(12)
 
 #gradient with DM
-dm_gradient(pars ,G_real_dm, spop, num_qub, num_l, ent_gate, shift,gates_tot_dm2,noise,shots,val_g)
+dm_gradient(pars = pars,
+            G_real_dm = G_real_dm,
+            spop = spop,
+            num_qub = num_qub,
+            num_l = num_l,
+            ent_gate = ent_gate,
+            shift = shift,
+            noise = noise, 
+            shots = shots,
+            val_g = val_g)
 
 #error calculation:
 error_DM = get_dm_error(n_pars, spop, shots, shift=np.pi/2)
