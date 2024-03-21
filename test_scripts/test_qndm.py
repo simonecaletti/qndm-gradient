@@ -147,7 +147,18 @@ G_real_qndm = np.zeros(n_pars)
 gates_tot_qndm=np.zeros(12)
 
 #gradient with qndm
-qndm_gradient(lambda1, pars ,G_real_qndm, newspop, num_qub, num_l, ent_gate, shift,gates_tot_qndm,noise,shots,val_g)
+#qndm_gradient(lambda1, pars ,G_real_qndm, newspop, num_qub, num_l, ent_gate, shift,gates_tot_qndm, noise, shots, val_g)
+qndm_gradient(lambda1=lambda1, 
+              pars=pars,
+              G_real_qndm = G_real_qndm,
+              newspop = newspop,
+              num_qub = num_qub,
+              num_l = num_l,
+              ent_gate = ent_gate,
+              shift = shift,
+              noise = noise,
+              shots = shots,
+              val_g = val_g)
 
 #error calculation:
 error_QNDM = get_qndm_error(n_pars, G_real_qndm, lambda1, shots, shift)
