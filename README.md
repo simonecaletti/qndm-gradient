@@ -16,7 +16,7 @@ To use the interface with the hamlib library [arXiv:2306.13126](https://arxiv.or
 ```
 bash hdf5-install.sh
 ```
-Now we activate the enviroment conda (qndm) and we download the requirements
+Now activate the enviroment conda (qndm) and download the requirements
 ```
 conda activate qndm
 pip install -r requirements.txt
