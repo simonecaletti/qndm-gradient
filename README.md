@@ -15,6 +15,7 @@ All the function for the QNDM algorithm are defined in the **qndm/** folder. The
 To use the interface with the hamlib library [arXiv:2306.13126](https://arxiv.org/abs/2306.13126) you need to install the **mat2qubit** package [arXiv:2205.09776](https://arxiv.org/abs/2205.09776). The instruction are contained in the **hdf5-install.sh** script, so just run 
 ```
 bash hdf5-install.sh
+pip install -r requirements.txt
 ```
 To test the installation create the folder **output_test** and run a test script, for example 
 ```
