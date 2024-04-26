@@ -14,16 +14,13 @@ All the function for the QNDM algorithm are defined in the **qndm/** folder. The
 
 To use the interface with the hamlib library [arXiv:2306.13126](https://arxiv.org/abs/2306.13126) you need to install the **mat2qubit** package [arXiv:2205.09776](https://arxiv.org/abs/2205.09776). The instruction are contained in the **hdf5-install.sh** script, so just run 
 ```
+chmod +x hdf5-install.sh     
 bash hdf5-install.sh
 ```
-Now activate the enviroment conda (qndm) and download the requirements
-```
-conda activate qndm
-pip install -r requirements.txt
-```
-To test the installation run a test script, for example 
+
+To test the installation run a test script in the folder **test_scripts**, for example 
 ```
 python3 test_qndm.py 
 ```
-If the installation is working correctly a **QNDM_der_0.csv** and a **RunCard_Der.txt** file have been created in folder **output_test**. The first one contains information about the gradient computation using the QNDM algorithm, while the second is an automatically generated runcard containing the detail of the run.
+If the installation is working correctly a **QNDM_der.csv** and a **RunCard_Der.txt** file have been created in folder **output_test**. The first one contains information about the gradient computation using the QNDM algorithm, while the second is an automatically generated runcard containing the detail of the run.
 
