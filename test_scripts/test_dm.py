@@ -70,9 +70,6 @@ else:
 
 spop = get_SparsePauliOp(PS, cps) #spop = sparse pauli operator
 
-#hamiltonians for QNDM: here we add the detector operator equal to Z
-PS_QNDM, cps_QNDM = add_detector(PS, cps)
-newspop = get_SparsePauliOp(PS_QNDM, cps_QNDM) #After adding the detector
 
 ############################
 #                          #
