@@ -134,8 +134,6 @@ print("Into the derivatives process...", end="")
 #array to save gradient results 
 G_real_dm = np.zeros(n_pars)
 
-#gate counter
-#gates_tot_dm2=np.zeros(12)
 
 #gradient with DM
 dm_gradient(pars = pars,
