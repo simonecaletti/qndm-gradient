@@ -121,8 +121,6 @@ noise = False
 #if noise = False --> Simulator = FakeSimulator
 #if noise = True --> Simulator = Aer
 
-#coupling parameter QNDM
-lambda1 = 0.1 
 
 
 #--------------------------------------------------------------------------------------------
