@@ -3,7 +3,7 @@
 
 from math import sin
 from qiskit import QuantumCircuit, execute, BasicAer
-from qiskit import Aer,QuantumRegister, ClassicalRegister, execute,transpile,QuantumCircuit
+from qiskit import QuantumRegister, ClassicalRegister, execute,QuantumCircuit
 from qiskit_aer.noise import NoiseModel
 from qiskit.providers.fake_provider import FakeLondonV2, FakeManilaV2, FakeJakarta
 from qndm.derivatives.gradient.qndm import qndm_gradient_circuit
@@ -11,16 +11,11 @@ from qndm.derivatives.gradient.dm import dm_gradient_circuit
 from qndm.derivatives.hessian.qndm import qndm_hessian_circuit
 from qndm.derivatives.hessian.dm import dm_hessian_circuit
 from qndm.hamiltonians.normalization.lam_balancing import get_lambda_balancing
-from qndm.tools.counting import q_counter
 
-import random
 import numpy as np
 from math import asin
 
 
-#---------------------------------------------------------------------------------------------
-#import QNDM package
-#from qndm.tool.q_gate_count import q_counter
 
 #---------------------------------------------------------------------------------------------
 #####################################
@@ -52,20 +47,19 @@ def qndm_derivative(lambda1, initial_pameter,shift_position,newspop,num_qub,num_
     #quantum circuit: "QNDM for gradient"
     qndm_gradient_circuit(bc, shift_position,newspop,num_qub,num_l,val_g,detect_index,shift, simp,ent_gate)
     
-    #parameters initialization
+    #parameters vector
     initial_values = [lambda1/2,lambda1/2]
     for i in range(len(initial_pameter)):
         initial_values.append(initial_pameter[i])
 
+    #parameters initialization
     param_dict = dict(zip(bc.parameters, initial_values))
     circ=bc.bind_parameters(param_dict)
 
     # measure the detector qubit
     circ.measure(detect_index, 0)
-    print(circ)
  
     #simulated NOISE
-    #backend = Aer.get_backend('aer_simulator_stabilizer')
     backend = BasicAer.get_backend('qasm_simulator')
     coupling_map = None
     basis_gates = None
@@ -76,7 +70,7 @@ def qndm_derivative(lambda1, initial_pameter,shift_position,newspop,num_qub,num_
         noise_model = NoiseModel.from_backend(backend)
         basis_gates = noise_model.basis_gates
 
-    #run quantum circuit with noise simulator
+    #run quantum circuit 
     job = execute(circ, backend=backend, shots=shots)
     result = job.result()
     data = result.get_counts(circ)
@@ -91,7 +85,6 @@ def qndm_derivative(lambda1, initial_pameter,shift_position,newspop,num_qub,num_
            p1 += data[l]/shots # probability of |1> in the detector state
 
     #calculate value of derivative in one direction  
-    from math import sqrt,asin,sin
     G_real_qndm[shift_position] = asin(2*p1-1)/(2*(lambda1))
 
     return None 
@@ -133,7 +126,7 @@ def dm_derivative(initial_pameter,shift_position,num_qub,num_l, ent_gate, shift,
 
 
     # Setup qubit register
-    q_reg_size = num_qub #numbers of qubit (sys + det)
+    q_reg_size = num_qub #numbers of qubit
     q_reg_size_c= num_qub #numbers of classic bit
 
     #quantum circuit
@@ -144,27 +137,29 @@ def dm_derivative(initial_pameter,shift_position,num_qub,num_l, ent_gate, shift,
     #quantum circuit: "DM (manual) for gradient"
     dm_gradient_circuit(bc, shift_position,num_qub,num_l,val_g,shift,kk,ent_gate)
     
-
-    #parameters initialization
+    #parameters vector
     initial_values = []
     for i in range(len(initial_pameter)):
       initial_values.append(initial_pameter[i])
 
+    #parameters initialization
     param_dict = dict(zip(bc.parameters, initial_values))
     circ=bc.bind_parameters(param_dict) 
 
-    # measure the system qubits
+
+    #measuring lists
     qubit_index = []
     qubit_index2 = []
-
     for i in range(num_qub):
       qubit_index.append(num_qub-i-1)
       qubit_index2.append(i)
 
+    # measure the system qubits
     circ.measure(qubit_index, qubit_index2)
-    print(circ)    
 
-        #simulated NOISE
+
+
+    #simulated NOISE
     backend = BasicAer.get_backend('qasm_simulator')
     coupling_map = None
     basis_gates = None
@@ -175,7 +170,7 @@ def dm_derivative(initial_pameter,shift_position,num_qub,num_l, ent_gate, shift,
         noise_model = NoiseModel.from_backend(backend)
         basis_gates = noise_model.basis_gates
  
-    #run quantum circuit with noise simulator
+    #run quantum circuit
     job = execute(circ, backend=backend, shots=shots)
     result = job.result()
     data = result.get_counts(circ)
@@ -252,7 +247,7 @@ def dm_gradient(pars ,G_real_dm, spop, num_qub, num_l, ent_gate,shift,noise,shot
 def qndm_derivative_hessian(lambda1, initial_pameter,shift_position,sh2,newspop,num_qub,num_l,ent_gate,shift,G_real_qndm,H_real_qndm,shots,noise,val_g,simp, gradient_calc): 
 
     # Setup qubit register
-    q_reg_size = num_qub + 1 #numbers of qubit
+    q_reg_size = num_qub + 1 #numbers of qubit (sys + det)
     q_reg_size_c = 1 #numbers of classic bit
     detect_index=num_qub #index number of the detector qubit
 
@@ -263,19 +258,18 @@ def qndm_derivative_hessian(lambda1, initial_pameter,shift_position,sh2,newspop,
 
     #balacing of lambda in function of hamiltonian
     lambda1 = get_lambda_balancing(newspop,lambda1) 
-    #print(lambda1)
 
     #hessian
     bc_hess = QuantumCircuit(q_reg, c_reg, name="QNDM_hess")
     #quantum circuit: "QNDM for hessian"
     qndm_hessian_circuit(bc_hess, shift_position,sh2,newspop,num_qub,num_l,detect_index,shift,val_g, simp,ent_gate)
     
-    #parameters initialization
+    #parameters vector
     initial_values_hess = [lambda1/2,lambda1/2,lambda1/2,lambda1/2]
-
     for i in range(len(val_g)):
       initial_values_hess.append(initial_pameter[i])
 
+    #parameters initialization
     param_dict = dict(zip(bc_hess.parameters, initial_values_hess))
     circ_hess=bc_hess.bind_parameters(param_dict)
 
@@ -284,13 +278,8 @@ def qndm_derivative_hessian(lambda1, initial_pameter,shift_position,sh2,newspop,
     circ_hess.measure(detect_index, 0)
 
 
-    #print    
-    #print(circ_hess) 
-    #print(circ_hess.decompose().decompose())
-
 
     #simulated NOISE
-   
     backend = BasicAer.get_backend('qasm_simulator')
     coupling_map = None
     basis_gates = None
@@ -301,9 +290,7 @@ def qndm_derivative_hessian(lambda1, initial_pameter,shift_position,sh2,newspop,
         noise_model = NoiseModel.from_backend(backend)
         basis_gates = noise_model.basis_gates
 
-
-
-  
+    #run quantum circuit
     job = execute(circ_hess, backend=backend, shots=shots)
     result = job.result()
     data = result.get_counts(circ_hess)   
@@ -370,7 +357,7 @@ def dm_derivative_hessian(initial_pameter,sh1,sh2,num_qub,num_l,ent_gate,shift1,
 
 
     # Setup qubit register
-    q_reg_size = num_qub #numbers of qubit (sys + det)
+    q_reg_size = num_qub #numbers of qubit 
     q_reg_size_c= num_qub #numbers of classic bit
 
     #quantum circuit
@@ -379,32 +366,29 @@ def dm_derivative_hessian(initial_pameter,sh1,sh2,num_qub,num_l,ent_gate,shift1,
     bc_hess = QuantumCircuit(q_reg, c_reg, name="DM")
 
     #quantum circuit: "DM (manual) for gradient"
-
     dm_hessian_circuit(bc_hess,sh1,sh2,num_qub,num_l,val_g,shift1,shift2,kk,ent_gate)
 
-    #parameters initialization
+    #paramenters vector
     initial_values = []
     for i in range(len(initial_pameter)):
       initial_values.append(initial_pameter[i])
 
+    #parameters initialization
     param_dict = dict(zip(bc_hess.parameters, initial_values))
     circ_hess=bc_hess.bind_parameters(param_dict)
 
-    # measure the system qubits
+    
+    #measuring lists
     qubit_index = []
     qubit_index2 = []
-
     for i in range(num_qub):
       qubit_index.append(num_qub-i-1)
       qubit_index2.append(i)
 
-
+    # measure the system qubits
     circ_hess.measure(qubit_index, qubit_index2)
-    print(circ_hess)
-    #print(circ_hess.decompose().decompose().decompose())
 
-
-        #simulated NOISE
+    #simulated NOISE
     backend = BasicAer.get_backend('qasm_simulator')
     coupling_map = None
     basis_gates = None
@@ -415,13 +399,12 @@ def dm_derivative_hessian(initial_pameter,sh1,sh2,num_qub,num_l,ent_gate,shift1,
         noise_model = NoiseModel.from_backend(backend)
         basis_gates = noise_model.basis_gates
  
-    #run quantum circuit with noise simulator
+    #run quantum circuit 
     job = execute(circ_hess, backend=backend, shots=shots)
     result = job.result()
     data = result.get_counts(circ_hess)
 
     #extract counts
-
     minus = 0.
     plus = 0.
     for l in data.keys():

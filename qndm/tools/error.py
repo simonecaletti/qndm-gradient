@@ -12,7 +12,7 @@ import sys
 import pandas as pd
 import numpy as np
 
-#QNDM error 
+#QNDM error first derivative
 def get_qndm_error(pars, G_real_qndm, lambda1, shots, shift=np.pi/2):
     error = np.zeros(pars)
     
@@ -22,13 +22,14 @@ def get_qndm_error(pars, G_real_qndm, lambda1, shots, shift=np.pi/2):
     return error
 
 
-#DM error
+#DM error first derivative
 def get_dm_error(pars, spop, shots, shift=np.pi/2):
     error = np.zeros(pars)
     error[:] = (1/(np.sqrt(2*shots)*np.sin(shift)))*sum(np.real(np.asarray(spop.coeffs)))
     
     return error
 
+#QNDM error second derivative
 def get_qndm_error_second(pars, H_real_qndm, lambda1, shots, shift=np.pi/2):
     error = np.zeros((pars,pars))
     for j in range(pars):
@@ -38,7 +39,7 @@ def get_qndm_error_second(pars, H_real_qndm, lambda1, shots, shift=np.pi/2):
     return error
 
 
-#DM error
+#DM error second derivative
 def get_dm_error_second(pars, spop, shots, shift=np.pi/2):
     error = np.zeros((pars,pars))
     error[:,:] = (1/(2*np.sqrt(shots)*(np.sin(shift)**2)))*sum(np.real(np.asarray(spop.coeffs)))

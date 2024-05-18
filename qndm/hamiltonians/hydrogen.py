@@ -5,9 +5,7 @@
 from qndm.hamiltonians.interface import make_request, get_hamiltonian, get_nqubit
 from qndm.hamlib.structure import get_hdf5_keys
 import sys
-import h5py
 from string import Template
-import os
 
 #-------------------------------------------------
 

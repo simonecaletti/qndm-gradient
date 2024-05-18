@@ -23,7 +23,7 @@ def add_detector(PS, cps): #add the detector to create hamiltonian for qndm
         newPS.append(pauli)
     return newPS, cps
 
-def get_hamiltonian(n_qub, sel): #select the hamitonian op from some examples
+def get_hamiltonian(n_qub, sel): #gerate a random hamitonian op 
 
 
             import random
@@ -39,8 +39,10 @@ def get_hamiltonian(n_qub, sel): #select the hamitonian op from some examples
 
             # Set the length of the random string
             string_length = n_qub  # Change this to your desired length
-            for i in range(int(sel)):
-            # Generate a random string by randomly choosing values from the list
+
+            # Generate a sum of random string 
+            for _ in range(int(sel)):
+
                 random_string = ''.join(random.choice(values) for _ in range(string_length))
                 prob_string = random.gauss(mu, sigma)
 

@@ -8,8 +8,6 @@
 #these code or part of it.
 
 import os
-import sys
-import pandas as pd
 import numpy as np
 
 #####R U N - C A R D#####
