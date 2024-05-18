@@ -14,6 +14,7 @@ def qndm_gradient_circuit(circ,shift_position,pm,num_qub,num_l,val_g,q_d,shift, 
   circ.h(q_d)
   params = ParameterVector("theta", length=len(val_g))
 
+  #Lists with the position information to compose circ with the U and the PauliEvolutionGates
   qubits = []
   qubits_ = []
   for i in range(num_qub):
