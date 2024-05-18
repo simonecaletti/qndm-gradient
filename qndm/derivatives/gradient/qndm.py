@@ -21,7 +21,7 @@ def qndm_gradient_circuit(circ,shift_position,pm,num_qub,num_l,val_g,q_d,shift, 
     qubits_exp.append(i)
   qubits_exp.insert(0,num_qub)
 
-  #first unitary trasformation: U1:|00...0>->|\psi(\theta - se_j)
+  #first unitary trasformation: U1:|00...0>->|\psi(\theta - shift*e_(shift_position))
   unitary1=U1(val_g,params,num_qub,num_l,shift,shift_position,ent_gate)
   circ.compose(unitary1, qubits=qubits_U, inplace=True)
 
@@ -31,11 +31,11 @@ def qndm_gradient_circuit(circ,shift_position,pm,num_qub,num_l,val_g,q_d,shift, 
   circ.append(trotterized_op, qubits_exp)
 
  
-  #second unitary trasformation: U1_dag|\psi(\theta - se_j)->|00...0>
+  #second unitary trasformation: U1_dag|\psi(\theta - shift*e_(shift_position))->|00...0>
   unitary1_dag=U1_dag(val_g,params,num_qub,num_l,shift,shift_position,ent_gate)
   circ.compose(unitary1_dag, qubits=qubits_U, inplace=True)
 
-  #third unitary trasformation: U2:|00...0>->|\psi(\theta + se_j)
+  #third unitary trasformation: U2:|00...0>->|\psi(\theta + shift*e_(shift_position))
   unitary2=U2(val_g,params,num_qub,num_l,shift,shift_position,ent_gate)
   circ.compose(unitary2, qubits=qubits_U, inplace=True)
 

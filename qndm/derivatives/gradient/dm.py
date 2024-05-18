@@ -15,7 +15,7 @@ def dm_gradient_circuit(circ,shift_position,num_qub,num_l,val_g,shift,kk,ent_gat
   for i in range(num_qub):
     qubits_U.append(i)
 
-  #Unitary trasformation: U1:|00...0>->|\psi(\theta +- se_j)
+  #Unitary trasformation: U1:|00...0>->|\psi(\theta +- shift*e_(shift_position))
   unitary1=U1(val_g,params,num_qub,num_l,shift,shift_position,ent_gate)
   circ.compose(unitary1, qubits=qubits_U, inplace=True)
   

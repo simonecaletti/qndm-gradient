@@ -1,86 +1,75 @@
 #!/usr/bin/python3
 
-from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
 from qiskit.circuit import Parameter,ParameterVector
 from qiskit.circuit.library import PauliEvolutionGate
 from qndm.layers.unitaries_hessian import *
-import numpy as np
-from math import cos, sin
 
-def qndm_hessian_circuit(circ,shift_position,sh2,pm,num_qub,num_l,q_d,shift,val_g,simp,ent_gate):
+def qndm_hessian_circuit(circ,sh1,sh2,pm,num_qub,num_l,q_d,shift,val_g,simp,ent_gate):
 
 
   #initialization of detector
   circ.h(q_d)
+
+  #initialization of paramenters \theta vector 
   params = ParameterVector("theta", length=len(val_g))
 
-  qubits = []
-  qubits_ = []
+  #Lists with the qubits position information to compose circ with the U and the PauliEvolutionGates
+  qubits_U = []
+  qubits_exp = []
   for i in range(num_qub):
-    qubits.append(i)
-    qubits_.append(i)
-  qubits_.insert(0,num_qub)
+    qubits_U.append(i)
+    qubits_exp.append(i)
+  qubits_exp.insert(0,num_qub)
 
 
-  #simplification part
-  div = 0
-  if simp == True:
-    if shift_position <= sh2:
-      div = int(shift_position/num_qub)
-    if shift_position > sh2:
-      div = int(sh2/num_qub) 
-    #if we are above the first layer we have a part of U1+ that can be simplified with U2
-    if div>=1:
-      for i in range(div):
-        val_g =  val_g[num_qub:]
-
-  #U1
-  U_1=U1_hess(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
-  circ.compose(U_1, qubits=qubits, inplace=True)
+  #first unitary trasformation: U1:|00...0>->|\psi(\theta - shift*e_(sh1)+shift*e_(sh2))
+  unitary1=U1_hess(val_g,params,num_qub,num_l,sh1,sh2,shift,ent_gate)
+  circ.compose(unitary1, qubits=qubits_U, inplace=True)
 
 
-  #first interction with detector
+  #first coupling interation
   evo_time = Parameter('p_deco')
   trotterized_op = PauliEvolutionGate(pm,evo_time)
-  circ.append(trotterized_op, qubits_)                            
+  circ.append(trotterized_op, qubits_exp)                            
 
-  #U1_dag
-  U_1_dag=U1_hess_dag(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
-  circ.compose(U_1_dag, qubits=qubits, inplace=True)
-  #U2
-  U_2=U2_hess(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
-  circ.compose(U_2, qubits=qubits, inplace=True)
+  #second unitary trasformation: U1_dag|\psi(\theta - shift*e_(sh1)+shift*e_(sh2))->|00...0>
+  unitary1_dag=U1_hess_dag(val_g,params,num_qub,num_l,sh1,sh2,shift,ent_gate)
+  circ.compose(unitary1_dag, qubits=qubits_U, inplace=True)
 
-  #second interction with detector
+  #third unitary trasformation: U2:|00...0>->|\psi(\theta - shift*e_(sh1)-shift*e_(sh2))
+  unitary2=U2_hess(val_g,params,num_qub,num_l,sh1,sh2,shift,ent_gate)
+  circ.compose(unitary2, qubits=qubits_U, inplace=True)
+
+  #second coupling interation
   evo_time2 = Parameter('p_deco2')
   trotterized_op2 = PauliEvolutionGate(pm,-evo_time2)
-  circ.append(trotterized_op2, qubits_)
+  circ.append(trotterized_op2, qubits_exp)
 
-  #U2_dag
-  U_2_dag=U2_hess_dag(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
-  circ.compose(U_2_dag, qubits=qubits, inplace=True)
+  #fifth unitary trasformation: U2_dag|\psi(\theta - shift*e_(sh1)-shift*e_(sh2))->|00...0>
+  unitary2_dag=U2_hess_dag(val_g,params,num_qub,num_l,sh1,sh2,shift,ent_gate)
+  circ.compose(unitary2_dag, qubits=qubits_U, inplace=True)
 
-  #U3
-  U_3=U3_hess(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
-  circ.compose(U_3, qubits=qubits, inplace=True)
+  #sixth unitary trasformation: U3:|00...0>->|\psi(\theta + shift*e_(sh1)-shift*e_(sh2))
+  unitary3=U3_hess(val_g,params,num_qub,num_l,sh1,sh2,shift,ent_gate)
+  circ.compose(unitary3, qubits=qubits_U, inplace=True)
 
-  #third interction with detector
+  #third coupling interation
   evo_time3 = Parameter('p_deco3')
   trotterized_op3 = PauliEvolutionGate(pm,evo_time3)
-  circ.append(trotterized_op3, qubits_)
+  circ.append(trotterized_op3, qubits_exp)
 
-  #U3_dag
-  U_3_dag=U3_hess_dag(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
-  circ.compose(U_3_dag, qubits=qubits, inplace=True)
+  #seventh unitary trasformation: U3_dag|\psi(\theta + shift*e_(sh1)-shift*e_(sh2))->|00...0>
+  unitary3_dag=U3_hess_dag(val_g,params,num_qub,num_l,sh1,sh2,shift,ent_gate)
+  circ.compose(unitary3_dag, qubits=qubits_U, inplace=True)
 
-  #U4
-  U_4=U4_hess(val_g,params,num_qub,num_l,shift_position,sh2,shift,ent_gate)
-  circ.compose(U_4, qubits=qubits, inplace=True)
+  #eighth unitary trasformation: U3:|00...0>->|\psi(\theta + shift*e_(sh1)+shift*e_(sh2))
+  unitary4=U4_hess(val_g,params,num_qub,num_l,sh1,sh2,shift,ent_gate)
+  circ.compose(unitary4, qubits=qubits_U, inplace=True)
 
-  #fourth interction with detector
+  #fourth coupling interation
   evo_time4 = Parameter('p_deco4')
   trotterized_op4 = PauliEvolutionGate(pm,-evo_time4)
-  circ.append(trotterized_op4, qubits_)
+  circ.append(trotterized_op4, qubits_exp)
   
   #qubit for measure the detector
   circ.h(q_d)
