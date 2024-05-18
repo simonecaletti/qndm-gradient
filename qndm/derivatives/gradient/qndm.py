@@ -1,59 +1,49 @@
 #!/usr/bin/python3
-
-from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
 from qiskit.circuit import Parameter,ParameterVector
 from qiskit.circuit.library import PauliEvolutionGate
 from qndm.layers.unitaries_gradient import *
-import numpy as np
-from math import cos, sin
+
 
 #Quantum Circuit
 def qndm_gradient_circuit(circ,shift_position,pm,num_qub,num_l,val_g,q_d,shift, simp,ent_gate):
 
   #initialization of detector
   circ.h(q_d)
+
+  #initialization of paramenters \theta vector 
   params = ParameterVector("theta", length=len(val_g))
 
-  #Lists with the position information to compose circ with the U and the PauliEvolutionGates
-  qubits = []
-  qubits_ = []
+  #Lists with the qubits position information to compose circ with the U and the PauliEvolutionGates
+  qubits_U = []
+  qubits_exp = []
   for i in range(num_qub):
-    qubits.append(i)
-    qubits_.append(i)
-  qubits_.insert(0,num_qub)
+    qubits_U.append(i)
+    qubits_exp.append(i)
+  qubits_exp.insert(0,num_qub)
 
-  lay_qn=U1(val_g,params,num_qub,num_l,shift,shift_position,ent_gate)
-  circ.compose(lay_qn, qubits=qubits, inplace=True)
+  #first unitary trasformation: U1:|00...0>->|\psi(\theta - se_j)
+  unitary1=U1(val_g,params,num_qub,num_l,shift,shift_position,ent_gate)
+  circ.compose(unitary1, qubits=qubits_U, inplace=True)
 
-  #first exponential interation
-  
+  #first coupling interation
   evo_time = Parameter('p_deco')
   trotterized_op = PauliEvolutionGate(pm,evo_time)
-  circ.append(trotterized_op, qubits_)
+  circ.append(trotterized_op, qubits_exp)
 
-  #U2 
+ 
+  #second unitary trasformation: U1_dag|\psi(\theta - se_j)->|00...0>
+  unitary1_dag=U1_dag(val_g,params,num_qub,num_l,shift,shift_position,ent_gate)
+  circ.compose(unitary1_dag, qubits=qubits_U, inplace=True)
 
-  #Update U2
-  val_g2 = val_g
-  div = 0
-  if simp == True:
-    div = int(shift_position/num_qub)
-    #if we are above the first layer we have a part of U1+ that can be simplified with U2
-    if div>=1:
-      for i in range(div):
-          val_g2 =  val_g2[num_qub:]
+  #third unitary trasformation: U2:|00...0>->|\psi(\theta + se_j)
+  unitary2=U2(val_g,params,num_qub,num_l,shift,shift_position,ent_gate)
+  circ.compose(unitary2, qubits=qubits_U, inplace=True)
 
 
-  l_d=U1_dag(val_g2,params,num_qub,num_l,shift,shift_position,ent_gate)
-  circ.compose(l_d, qubits=qubits, inplace=True)
-  l_2=U2(val_g2,params,num_qub,num_l,shift,shift_position,ent_gate)
-  circ.compose(l_2, qubits=qubits, inplace=True)
-
-
-  #second exponential interation
+  #second coupling interation
   evo_time2 = Parameter('p_deco2')
   trotterized_op2 = PauliEvolutionGate(pm,-evo_time2)
-  circ.append(trotterized_op2, qubits_)
+  circ.append(trotterized_op2, qubits_exp)
   
 
   #qubit for measure the detector

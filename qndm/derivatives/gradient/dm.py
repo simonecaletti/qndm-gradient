@@ -1,28 +1,27 @@
 #!/usr/bin/python3
 
-from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
-from qiskit.circuit import Parameter,ParameterVector
-from qiskit.circuit.library import PauliEvolutionGate
+from qiskit.circuit import ParameterVector
 from qndm.layers.unitaries_gradient import *
-import numpy as np
-from math import cos, sin
+
 
 #Quantum Circuit
 def dm_gradient_circuit(circ,shift_position,num_qub,num_l,val_g,shift,kk,ent_gate):
-  #initialization of detector
+
+  #initialization of paramenters \theta vector 
   params = ParameterVector("theta", length=len(val_g))
 
-  qubits = []
+  #List with the qubits position information to compose circ with the U 
+  qubits_U = []
   for i in range(num_qub):
-    qubits.append(i)
+    qubits_U.append(i)
 
-
-  l_d=U1(val_g,params,num_qub,num_l,shift,shift_position,ent_gate)
-  circ.compose(l_d, qubits=qubits, inplace=True)
+  #Unitary trasformation: U1:|00...0>->|\psi(\theta +- se_j)
+  unitary1=U1(val_g,params,num_qub,num_l,shift,shift_position,ent_gate)
+  circ.compose(unitary1, qubits=qubits_U, inplace=True)
   
-  #observable
+  #Rotation of the state in function of Pauli String
   gate_dm = [gate_dm for gate_dm in kk]
-  print(gate_dm)
+  
   for i,val_h in enumerate(gate_dm):
 
     if str(val_h) == 'X':
