@@ -1,10 +1,6 @@
 #!/usr/bin/python3
 
-from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
-from qiskit.circuit import Parameter,ParameterVector
-from qiskit.circuit.library import PauliEvolutionGate
-import numpy as np
-from math import cos, sin
+from qiskit import QuantumRegister, QuantumCircuit
 
 #-------------------------------------------------------------------------------
 
@@ -14,74 +10,89 @@ from math import cos, sin
 #                                   #
 #####################################
 
-#U1
+#Unitary trasformation: U1:|00...0>->|\psi(\theta - shift*e_(shift_position))
 def U1(val_g,par_var,num_qu,num_l,shift,shift_pos,ent_gate):
-  q_reg = QuantumRegister(num_qu, "q")
-  circ = QuantumCircuit(q_reg, name="layer-")
 
-#rotation part
+  #quantum register
+  q_reg = QuantumRegister(num_qu, "q")
+  #quantum circuit
+  circ = QuantumCircuit(q_reg)
+
   for k in range(val_g.shape[0]): 
+    
+  #parametrized single gate layer
     if val_g[k]==1:
       if k == shift_pos:
         circ.rx(par_var[k]-shift,k%num_qu)
       else:  
         circ.rx(par_var[k],k%num_qu)
+
     elif val_g[k]==2:
       if k == shift_pos:
         circ.ry(par_var[k]-shift,k%num_qu)
       else: 
         circ.ry(par_var[k],k%num_qu)
+
     elif val_g[k]==3:
       if k == shift_pos:
         circ.rz(par_var[k]-shift,k%num_qu)
       else: 
         circ.rz(par_var[k],k%num_qu)
    
-#entanglement part
+    #no parametrized entanglement layer
     if  k !=0 and (k+1)%(len(val_g)/(num_l)) == 0: 
+      #the condition is satisfied when the code complete the parametrized single gate layer
+
       ent = [lambda x:circ.cx(x, x+1),lambda x:circ.swap(x, x+1)]
+
       if num_qu!=1:
         r_cx = int(num_qu/2)
         for ii in range(r_cx):
           ent[ent_gate](2*ii)
-          #circ.cx(ii*2, 2*ii+1)
+
         if num_qu>2:
           for j in range(r_cx-(num_qu+1)%2):
-            #circ.cx(2*j+1, 2*j+2)
             ent[ent_gate](2*j+1)
   return circ
 
-#U1 dagger
+#second unitary trasformation: U1_dag|\psi(\theta - shift*e_(shift_position))->|00...0>
 def U1_dag(val_g,par_var,num_qu,num_l,shift,shift_pos,ent_gate):
-  
+
+  #quantum register
   q_reg = QuantumRegister(num_qu, "q")
-  circ = QuantumCircuit(q_reg, name="layer-")
+  #quantum circuit
+  circ = QuantumCircuit(q_reg)
   
   for k in reversed(range(val_g.shape[0])): 
-#entanglement part
+    #no parametrized entanglement layer
     if  k !=0 and (k+1)%((len(val_g)/(num_l))) == 0: 
+
       ent = [lambda x:circ.cx(x, x+1),lambda x:circ.swap(x, x+1)]
+
       if num_qu!=1:
+
         r_cx = int(num_qu/2)
         if num_qu>2:
+
           for j in range(r_cx-(num_qu+1)%2):
             ent[ent_gate](2*j+1)
-            #circ.cx(2*j+1, 2*j+2)
+
         for ii in range(r_cx):
           ent[ent_gate](2*ii)
-          #circ.cx(ii*2, 2*ii+1)
         
-#rotation part     
+    #parametrized single gate layer
     if val_g[k]==1:
       if k == shift_pos:
         circ.rx(-par_var[k]+shift,k%num_qu)
       else:  
         circ.rx(-par_var[k],k%num_qu)
+
     elif val_g[k]==2:
       if k == shift_pos:
         circ.ry(-par_var[k]+shift,k%num_qu)
       else: 
         circ.ry(-par_var[k],k%num_qu)
+    
     elif val_g[k]==3:
       if k == shift_pos:
         circ.rz(-par_var[k]+shift,k%num_qu)
@@ -90,37 +101,49 @@ def U1_dag(val_g,par_var,num_qu,num_l,shift,shift_pos,ent_gate):
 
   return circ
 
-#U2
+#third unitary trasformation: U2:|00...0>->|\psi(\theta + shift*e_(shift_position))
 def U2(val_g,par_var,num_qu,num_l,shift,shift_pos,ent_gate):
-  q_reg = QuantumRegister(num_qu, "q")
-  circ = QuantumCircuit(q_reg, name="layer-")
 
-    
+
+  #quantum register
+  q_reg = QuantumRegister(num_qu, "q")
+  #quantum circuit
+  circ = QuantumCircuit(q_reg)
+
+
   for k in range(val_g.shape[0]): 
-#rotation part
+
+  #parametrized single gate layer
     if val_g[k]==1:
       if k == shift_pos:
         circ.rx(par_var[k]+shift,k%num_qu)
       else:  
         circ.rx(par_var[k],k%num_qu)
+
     elif val_g[k]==2:
       if k == shift_pos:
         circ.ry(par_var[k]+shift,k%num_qu)
       else: 
         circ.ry(par_var[k],k%num_qu)
+
     elif val_g[k]==3:
       if k == shift_pos:
         circ.rz(par_var[k]+shift,k%num_qu)
       else: 
         circ.rz(par_var[k],k%num_qu)
 
-#entanglement part
+    #no parametrized entanglement layer   
     if  k !=0 and (k+1)%(len(val_g)/(num_l)) == 0: 
+    #the condition is satisfied when the code complete the parametrized single gate layer
+
       ent = [lambda x:circ.cx(x, x+1),lambda x:circ.swap(x, x+1)]
+
       if num_qu!=1:
         r_cx = int(num_qu/2)
+
         for ii in range(r_cx):
           ent[ent_gate](2*ii)
+
         if num_qu>2:
           for j in range(r_cx-(num_qu+1)%2):
             ent[ent_gate](2*j+1)

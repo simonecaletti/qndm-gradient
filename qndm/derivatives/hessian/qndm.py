@@ -45,11 +45,11 @@ def qndm_hessian_circuit(circ,sh1,sh2,pm,num_qub,num_l,q_d,shift,val_g,simp,ent_
   trotterized_op2 = PauliEvolutionGate(pm,-evo_time2)
   circ.append(trotterized_op2, qubits_exp)
 
-  #fifth unitary trasformation: U2_dag|\psi(\theta - shift*e_(sh1)-shift*e_(sh2))->|00...0>
+  #fourth unitary trasformation: U2_dag|\psi(\theta - shift*e_(sh1)-shift*e_(sh2))->|00...0>
   unitary2_dag=U2_hess_dag(val_g,params,num_qub,num_l,sh1,sh2,shift,ent_gate)
   circ.compose(unitary2_dag, qubits=qubits_U, inplace=True)
 
-  #sixth unitary trasformation: U3:|00...0>->|\psi(\theta + shift*e_(sh1)-shift*e_(sh2))
+  #fifth unitary trasformation: U3:|00...0>->|\psi(\theta + shift*e_(sh1)-shift*e_(sh2))
   unitary3=U3_hess(val_g,params,num_qub,num_l,sh1,sh2,shift,ent_gate)
   circ.compose(unitary3, qubits=qubits_U, inplace=True)
 
@@ -58,11 +58,11 @@ def qndm_hessian_circuit(circ,sh1,sh2,pm,num_qub,num_l,q_d,shift,val_g,simp,ent_
   trotterized_op3 = PauliEvolutionGate(pm,evo_time3)
   circ.append(trotterized_op3, qubits_exp)
 
-  #seventh unitary trasformation: U3_dag|\psi(\theta + shift*e_(sh1)-shift*e_(sh2))->|00...0>
+  #sixth unitary trasformation: U3_dag|\psi(\theta + shift*e_(sh1)-shift*e_(sh2))->|00...0>
   unitary3_dag=U3_hess_dag(val_g,params,num_qub,num_l,sh1,sh2,shift,ent_gate)
   circ.compose(unitary3_dag, qubits=qubits_U, inplace=True)
 
-  #eighth unitary trasformation: U3:|00...0>->|\psi(\theta + shift*e_(sh1)+shift*e_(sh2))
+  #seventh unitary trasformation: U3:|00...0>->|\psi(\theta + shift*e_(sh1)+shift*e_(sh2))
   unitary4=U4_hess(val_g,params,num_qub,num_l,sh1,sh2,shift,ent_gate)
   circ.compose(unitary4, qubits=qubits_U, inplace=True)
 
