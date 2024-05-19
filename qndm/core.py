@@ -378,19 +378,19 @@ def dm_derivative_hessian(initial_pameter,sh1,sh2,num_qub,num_l,ent_gate,shift1,
 
     #hessian in the direction e_(sh1) e e_(sh2)   
     if shift1 <0 and shift2 <0:
-        H_real_dm[sh1,sh2] -= cps[k]*mean_val/(4*(sin(shift1))**2) # probability of |0> in the system state
+        H_real_dm[sh1,sh2] -= np.real(cps[k]*mean_val/(4*(sin(shift1))**2)) # probability of |0> in the system state
 
     if shift1 <0 and shift2 >0:
-        H_real_dm[sh1,sh2] += cps[k]*mean_val/(4*(sin(shift1))**2) # probability of |0> in the system state
+        H_real_dm[sh1,sh2] += np.real(cps[k]*mean_val/(4*(sin(shift1))**2)) # probability of |0> in the system state
 
     if shift1 >0 and shift2 <0:
-        H_real_dm[sh1,sh2] += cps[k]*mean_val/(4*(sin(shift1))**2) # probability of |0> in the system state
+        H_real_dm[sh1,sh2] += np.real(cps[k]*mean_val/(4*(sin(shift1))**2)) # probability of |0> in the system state
 
     if shift1 >0 and shift2 >0:    
-        H_real_dm[sh1,sh2] -= cps[k]*mean_val/(4*(sin(shift1))**2) # probability of |0> in the system state
+        H_real_dm[sh1,sh2] -= np.real(cps[k]*mean_val/(4*(sin(shift1))**2)) # probability of |0> in the system state
    
 
-    #gradient
+    #if true the code calculates also the gradient
     if gradient_calc == True and sh2 == 0 :
 
         dm_derivative(initial_pameter,sh1, num_qub, num_l, ent_gate,shift1, kk,val_g,shots,G_real_dm,cps/2,k)

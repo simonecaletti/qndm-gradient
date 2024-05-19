@@ -12,7 +12,7 @@ import numpy as np
 
 #####R U N - C A R D#####
 
-def print_runcard(num_qub, num_l, val_g, spop, shots, lambda1=0, shift=np.pi/2, ent_gate=0, noise=False, output_path="./output_test"):
+def print_runcard(num_qub, num_l, val_g, spop, shots, lambda1=0, shift=np.pi/2, ent_gate=0, output_path="./output_test"):
     print("Writing the RunCard...", end="")
 
     # Save the data to a .txt file inside the directory
@@ -62,10 +62,6 @@ def print_runcard(num_qub, num_l, val_g, spop, shots, lambda1=0, shift=np.pi/2, 
         else:
             f.write("Lambda (QNDM coupling) = {}\n".format(lambda1))
 
-        if noise == True:
-            f.write("Added simulated noise with FakeJakarta")
-        else:
-            f.write("No noise (qasm simulator)")
 
         f.close()
     print("done!")

@@ -19,7 +19,7 @@ def dm_hessian_circuit(circ,sh1,sh2,num_qub,num_l,val_g,shift1,shift2,kk,ent_gat
   
   #Rotation of the state in function of Pauli String
   gate_dm = [gate_dm for gate_dm in kk]
-  print(gate_dm)
+
   for i,val_h in enumerate(gate_dm):
 
     if str(val_h) == 'X':

@@ -14,23 +14,18 @@ import os
 import sys
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-from math import pi, sqrt, sin
-from qiskit import Aer
-from qiskit_aer.noise import NoiseModel
-from qiskit.providers.fake_provider import FakeLondonV2, FakeManilaV2, FakeJakarta
+from math import pi
 
 
 #---------------------------------------------------------------------------------------------
 #import QNDM package
 
 
-from qndm.hamiltonians.examples import add_detector, get_SparsePauliOp
+from qndm.hamiltonians.examples import get_SparsePauliOp
 from qndm.core import *
-
 from qndm.hamiltonians.examples import get_hamiltonian
 from qndm.hamiltonians.hydrogen import get_model
-from qndm.tools.error import get_qndm_error_second, get_dm_error_second
+from qndm.tools.error import get_dm_error_second
 from qndm.tools.runcard import print_runcard
 
 
@@ -120,17 +115,14 @@ shots = 10000 #number shots for a single evaluation
 #shift (paramenter shift rule)
 shift = pi/2 
 
-#noise
-noise = False 
-#if noise = False --> Simulator = FakeSimulator
-#if noise = True --> Simulator = Aer
+
 
 
 #--------------------------------------------------------------------------------------------
 
 #R U N - C A R D#
 
-print_runcard(num_qub, num_l, val_g, newspop, shots, ent_gate=0, noise=False, output_path="./output_test")
+print_runcard(num_qub, num_l, val_g, spop, shots, ent_gate=0, output_path="./output_test")
 
 #------------------------------------------------------------------
 
@@ -143,7 +135,7 @@ G_real_dm = np.zeros(n_pars)
 H_real_dm = np.zeros((n_pars,n_pars))
    
 
-dm_hessian(pars ,G_real_dm, H_real_dm, spop, num_qub, num_l, ent_gate,shift,noise,shots,val_g)
+dm_hessian(pars ,G_real_dm, H_real_dm, spop, num_qub, num_l, ent_gate,shift,shots,val_g)
 
     
 

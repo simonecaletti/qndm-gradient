@@ -13,20 +13,15 @@ import os
 import sys
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-from math import pi, sqrt, sin
-from qiskit import Aer
-from qiskit_aer.noise import NoiseModel
-from qiskit.providers.fake_provider import FakeLondonV2, FakeManilaV2, FakeJakarta
+from math import pi
+
 
 
 #---------------------------------------------------------------------------------------------
 #import QNDM package
 
-
 from qndm.hamiltonians.examples import add_detector, get_SparsePauliOp
 from qndm.core import *
-
 from qndm.hamiltonians.examples import get_hamiltonian
 from qndm.hamiltonians.hydrogen import get_model
 from qndm.tools.error import get_qndm_error
@@ -123,18 +118,13 @@ shots = 50000 #number shots for a single evaluation
 #shift (paramenter shift rule)
 shift = pi/2 
 
-#noise
-noise = False 
-#if noise = False --> Simulator = FakeSimulator
-#if noise = True --> Simulator = Aer
-
 #coupling parameter QNDM
 lambda1 = 0.1 
 
 #--------------------------------------------------------------------------------------------
 #R U N - C A R D#
 
-print_runcard(num_qub, num_l, val_g, newspop, shots, lambda1, ent_gate=0, noise=False, output_path="./output_test")
+print_runcard(num_qub, num_l, val_g, newspop, shots, lambda1, ent_gate=0, output_path="./output_test")
 #------------------------------------------------------------------
 
 print("Into the derivatives process...", end="")
@@ -147,7 +137,6 @@ G_real_qndm = np.zeros(n_pars)
 gates_tot_qndm=np.zeros(12)
 
 #gradient with qndm
-#qndm_gradient(lambda1, pars ,G_real_qndm, newspop, num_qub, num_l, ent_gate, shift,gates_tot_qndm, noise, shots, val_g)
 qndm_gradient(lambda1=lambda1, 
               pars=pars,
               G_real_qndm = G_real_qndm,
@@ -155,8 +144,7 @@ qndm_gradient(lambda1=lambda1,
               num_qub = num_qub,
               num_l = num_l,
               ent_gate = ent_gate,
-              shift = shift,
-              noise = noise,
+              shift = shift,            
               shots = shots,
               val_g = val_g)
 

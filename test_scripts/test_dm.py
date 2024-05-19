@@ -13,16 +13,12 @@ import os
 import sys
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-from math import pi, sqrt, sin
-from qiskit import Aer
-from qiskit_aer.noise import NoiseModel
-from qiskit.providers.fake_provider import FakeLondonV2, FakeManilaV2, FakeJakarta
+from math import pi
 
 #---------------------------------------------------------------------------------------------
 #import QNDM package
 
-from qndm.hamiltonians.examples import add_detector, get_SparsePauliOp
+from qndm.hamiltonians.examples import get_SparsePauliOp
 from qndm.core import *
 from qndm.hamiltonians.examples import get_hamiltonian
 from qndm.hamiltonians.hydrogen import get_model
@@ -116,16 +112,12 @@ shots = 50000 #number shots for a single evaluation
 #shift (paramenter shift rule)
 shift = pi/2 
 
-#noise
-noise = False 
-#if noise = False --> Simulator = FakeSimulator
-#if noise = True --> Simulator = Aer
 
 
 
 #--------------------------------------------------------------------------------------------
 #R U N - C A R D#
-print_runcard(num_qub, num_l, val_g, spop, shots, ent_gate=0,shift=np.pi/2, noise=False, output_path="./output_test")
+print_runcard(num_qub, num_l, val_g, spop, shots, ent_gate=0,shift=np.pi/2, output_path="./output_test")
 #------------------------------------------------------------------
 
 print("Into the derivatives process...", end="")
@@ -143,7 +135,6 @@ dm_gradient(pars = pars,
             num_l = num_l,
             ent_gate = ent_gate,
             shift = shift,
-            noise = noise, 
             shots = shots,
             val_g = val_g)
 

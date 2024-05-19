@@ -4,7 +4,7 @@ from qiskit.circuit import Parameter,ParameterVector
 from qiskit.circuit.library import PauliEvolutionGate
 from qndm.layers.unitaries_hessian import *
 
-def qndm_hessian_circuit(circ,sh1,sh2,pm,num_qub,num_l,q_d,shift,val_g,simp,ent_gate):
+def qndm_hessian_circuit(circ,sh1,sh2,pm,num_qub,num_l,q_d,shift,val_g,ent_gate):
 
 
   #initialization of detector

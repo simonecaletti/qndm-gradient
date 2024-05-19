@@ -5,7 +5,7 @@ from qndm.layers.unitaries_gradient import *
 
 
 #Quantum Circuit
-def qndm_gradient_circuit(circ,shift_position,pm,num_qub,num_l,val_g,q_d,shift, simp,ent_gate):
+def qndm_gradient_circuit(circ,shift_position,pm,num_qub,num_l,val_g,q_d,shift,ent_gate):
 
   #initialization of detector
   circ.h(q_d)

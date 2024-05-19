@@ -1,0 +1,19 @@
+ -------------------- 
+|                    |
+|  RUNCARD (Der run) |
+|                    |
+ -------------------- 
+
+Number of qubits = 2 
+
+Layers = 4 
+Rotation U array: [3 3 3 1 2 1 1 1] 
+Info: rx = 1, ry = 2, rz = 3 
+Entaglment Gates are CNOTS 
+Shots = 10000 
+Hamiltonian SparsePauliOp(['ZX', 'ZX'],
+              coeffs=[1.64397501+0.j, 1.4473431 +0.j]) 
+
+
+Shift of parameter shift rule: 1.5707963267948966
+No Lambda coupling (DM run)
