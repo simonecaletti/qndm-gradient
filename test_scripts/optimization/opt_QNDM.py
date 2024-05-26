@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 
-#Code for gradient evaluation
+#Code for gradient optimization
 #using the QNDM method.
 #Written by: G. Minuto and S. Caletti
 #Contacts: giovanni.minuto@uniroma1.it
-#Cite 2301.07128 [quant-ph] in case you use 
+#Cite 2301.07128 and 2404.02245 [quant-ph] in case you use 
 #these code or part of it.
 
 #--------------------------------------------------------------------------------------------
