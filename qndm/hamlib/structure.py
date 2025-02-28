@@ -1,20 +1,30 @@
-#!/usr/bin/python3
-
+#==========================================================#
+#
+# !/usr/bin/python3
+#
 # Contains snippets provided in Appendix A.1
 # of paper arXiv:2306.13126
 #
-##-------------------------------------------------------------------------------
+#==========================================================#
+
 import networkx as nx
 import mat2qubit as m2q
 import openfermion as of
 import h5py
 import numpy as np
 
-#---------------------------------------------------------------------------------
+#==========================================================#
+#
+# Decorator function that iterates through an HDF5 file and 
+# performs the action specified by ‘ func ‘ on the internal 
+# and leaf nodes in the HDF5 file 
+#==========================================================#
 
 def parse_through_hdf5(func):
-    """ Decorator function that iterates through an HDF5 file and performs
-    the action specified by ‘ func ‘ on the internal and leaf nodes in the HDF5 file . """
+    """ 
+    
+    """
+    
     def wrapper(obj ,path = "/" ,key = None):
         if type(obj) in [h5py._hl.group.Group, h5py._hl.files.File]:
             for ky in obj.keys():
@@ -23,6 +33,7 @@ def parse_through_hdf5(func):
         elif type(obj) == h5py._hl.dataset.Dataset:
             func(obj ,path ,key=None, leaf = True)
     return wrapper
+
 
 def print_hdf5_structure(fname_hdf5 : str):
     """ Print the path structure of the HDF5 file .

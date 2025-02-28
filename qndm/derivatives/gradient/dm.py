@@ -6,10 +6,10 @@ from qndm.layers.unitaries_gradient import *
 
 #Quantum Circuit
 def dm_gradient_circuit(circ,shift_position,num_qub,num_l,val_g,shift,kk,ent_gate):
-
+  
   #initialization of paramenters \theta vector 
   params = ParameterVector("theta", length=len(val_g))
-
+  
   #List with the qubits position information to compose circ with the U 
   qubits_U = []
   for i in range(num_qub):

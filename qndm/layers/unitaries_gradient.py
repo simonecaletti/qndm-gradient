@@ -6,12 +6,13 @@ from qiskit import QuantumRegister, QuantumCircuit
 
 #entaglement type gate
 
-def ent(circ,x,ent_gate):
+def ent(circ, x, ent_gate):
   if ent_gate == 0:
     return circ.cx(x, x+1)
   if ent_gate == 1:
     return circ.swap(x, x+1)
   
+
 
 
 #####################################
@@ -21,7 +22,7 @@ def ent(circ,x,ent_gate):
 #####################################
 
 #Unitary trasformation: U1:|00...0>->|\psi(\theta - shift*e_(shift_position))
-def U1(val_g,par_var,num_qu,num_l,shift,shift_pos,ent_gate):
+def U1(val_g, par_var, num_qu, num_l,  shift, shift_pos, ent_gate):
 
   #quantum register
   q_reg = QuantumRegister(num_qu, "q")

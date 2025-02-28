@@ -20,3 +20,7 @@ def get_lambda_balancing(spop,lambda1):
         lambda1 = lambda1/norm_coeff
 
         return lambda1
+
+
+
+
