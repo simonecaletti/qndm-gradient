@@ -1,208 +1,233 @@
+
 #!/usr/bin/python3
 
+# 
+# generic packages importation
+#----------------------------------------------------------#
 
-from math import sin
-from qiskit import QuantumCircuit, execute, BasicAer
-from qiskit import QuantumRegister, ClassicalRegister, execute,QuantumCircuit
+from math import sin, asin
+import numpy as np
+from multiprocessing import Pool, cpu_count
+
+
+# 
+# QISKIT packages importation
+#----------------------------------------------------------#
+
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from qiskit_aer import AerSimulator
+from qiskit.compiler import transpile
+from qiskit_ibm_runtime.fake_provider import FakeManilaV2
+from qiskit.circuit import Parameter, ParameterVector, QuantumCircuit
+
+
+# 
+# QNDM packages importation
+#----------------------------------------------------------#
+
 from qndm.derivatives.gradient.qndm import qndm_gradient_circuit
 from qndm.derivatives.gradient.dm import dm_gradient_circuit
 from qndm.derivatives.hessian.qndm import qndm_hessian_circuit
 from qndm.derivatives.hessian.dm import dm_hessian_circuit
 from qndm.hamiltonians.normalization.lam_balancing import get_lambda_balancing
 
-import numpy as np
-from math import asin
+
+# 
+# QISKIT packages importation
+#----------------------------------------------------------#
+
+from qiskit.circuit import QuantumCircuit
+from qiskit.quantum_info import SparsePauliOp
+from qiskit.primitives import Estimator
+from qiskit import transpile
+from qiskit_aer import AerSimulator
+from qiskit_aer.noise import NoiseModel
+from qiskit.providers.fake_provider import *
+from qiskit.circuit import Parameter, ParameterVector, QuantumCircuit
+from qiskit import QuantumCircuit
+from qiskit.quantum_info import Statevector
+
+
+# 
+# QNDM packages importation
+#----------------------------------------------------------#
+
+from qndm.utils import *
+from qndm.hamiltonians.examples import *
+from qndm.layers.unitaries_gradient import *
+from qndm.hamiltonians.lithium import get_model_lithium, get_model_OH
+from qndm.layers.unitaries_gradient import *
+
+# simulator
+simulator = AerSimulator()
 
 
 
-#---------------------------------------------------------------------------------------------
-#####################################
-#                                   #
-#        Gradient QNDM              #      
-#                                   #
-#####################################
 
-#//////////#
-#   main   #
-#//////////#
+#==========================================================#
+#
+# Cost function 
+#==========================================================#
 
-#QNDM
-def qndm_derivative(lambda1, initial_pameter,shift_position,newspop,num_qub,num_l, ent_gate,shift,G_real_qndm,shots,val_g): 
+def cost_function(parameters, n_qubits : int, n_layers : int, lay_u : int, val_g, shift : float, ent_gate : int, spop, shots : int):
+    # circuit initialization
+    circuit = QuantumCircuit(n_qubits)
+    params  = ParameterVector("theta", length=n_qubits * n_layers * lay_u)
+
+    # unitary transformation
+    l_d = U1(val_g, params, n_qubits, n_layers, shift, 10000, ent_gate)
+    qubits = list(range(n_qubits))
+    circuit.compose(l_d, qubits=qubits, inplace=True)
+
+    # evaluation
+    estimator = Estimator()  
+    expectation_value = estimator.run(circuit, spop, parameters, shots=shots).result().values.real
+
+    return expectation_value
+
+
+
+
+
+#==========================================================#
+#
+# QNDM gradient calculation
+#==========================================================#
+
+def qndm_derivative(args):
+    shift_position, lambda1, pars, num_qub, num_l, val_g, shift, ent_gate, newspop, shots = args
 
     # Setup qubit register
-    q_reg_size = num_qub + 1 #numbers of qubit (sys + det)
-    q_reg_size_c = 1 #numbers of classic bit
-    detect_index = num_qub #index number of the detector qubit
+    q_reg_size   = num_qub + 1  # numbers of qubit (sys + det)
+    q_reg_size_c = 1            # numbers of classic bit
+    detect_index = num_qub      # index number of the detector qubit
 
-    #quantum circuit
+    # quantum circuit
     q_reg = QuantumRegister(q_reg_size, "q")
     c_reg = ClassicalRegister(q_reg_size_c, "c")
     bc = QuantumCircuit(q_reg, c_reg, name="QNDM")
 
-    #balacing of lambda in function of hamiltonian
-    lambda1 = get_lambda_balancing(newspop,lambda1)  
+    # quantum circuit: "QNDM for gradient"
+    qndm_gradient_circuit(bc, shift_position, newspop, num_qub, num_l, val_g, detect_index, shift, ent_gate)
 
-    #quantum circuit: "QNDM for gradient"
-    qndm_gradient_circuit(bc, shift_position,newspop,num_qub,num_l,val_g,detect_index,shift,ent_gate)
-    
     #parameters vector
     initial_values = [lambda1/2,lambda1/2]
-    for i in range(len(initial_pameter)):
-        initial_values.append(initial_pameter[i])
+    for i in range(len(pars)):
+        initial_values.append(pars[i])
 
-    #parameters initialization
     param_dict = dict(zip(bc.parameters, initial_values))
-    circ=bc.bind_parameters(param_dict)
+
+    # Prepare the circuit with parameters
+    circ = bc.assign_parameters(param_dict)
 
     # measure the detector qubit
     circ.measure(detect_index, 0)
- 
-    #backend
-    backend = BasicAer.get_backend('qasm_simulator')
 
-    #run quantum circuit 
-    job = execute(circ, backend=backend, shots=shots)
-    result = job.result()
-    data = result.get_counts(circ)
+    # transpile the circuit for optimization
+    transpiled_circ = transpile(circ, simulator)
 
-    p0,p1 = 0,0
-    #extract counts
+    # run quantum circuit with correct parameter binding
+    sim_result = simulator.run(transpiled_circ, parameter_binds=[param_dict], shots=shots).result()
+    data = sim_result.get_counts(transpiled_circ)
+
+    p0, p1 = 0, 0
+    # extract counts
     for l in data.keys():
-        if l == '0': # counts for detector in zero state
-           p0 += data[l]/shots # probability of |0> in the detector state
+        if l == '0':
+            p0 += data[l] / shots  # probability of |0> in the detector state
+        elif l == '1':
+            p1 += data[l] / shots  # probability of |1> in the detector state
 
-        elif l == '1': # counts for detector in one state
-           p1 += data[l]/shots # probability of |1> in the detector state
+    # derivative in the direction e_(shift_position)
+    gradient_component = asin(2 * p1 - 1) / (2 * lambda1)
 
-    #derivative in the direction e_(shift_position)
-    G_real_qndm[shift_position] = asin(2*p1-1)/(2*(lambda1))
+    #print(f'gradient[{shift_position}] = {gradient_component}')
+    #print(shift_position)
 
-    return None 
+    return gradient_component
+
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 # Gradient calculation QNDM
-def qndm_gradient(lambda1, pars ,G_real_qndm, newspop, num_qub, num_l, ent_gate,shift,shots,val_g):
 
+def qndm_gradient(lambda1, pars, newspop, num_qub, num_l, ent_gate, shift, shots, val_g):
     """Calculate first order derivatives with QNDM method. \n
 
-    #Paramenters: \n
-    lambda1 -- Value of coupling paramenter
+    # Parameters: \n
+    lambda1 -- Value of coupling parameter
     pars -- Parameters of the rotational gates \n
-    G_real_qndm -- Empty array where the function put the derivatives information \n
     newspop -- Hamiltonian \n
     num_qub -- Number of Qubits \n
     num_l -- Number of Layer \n
     ent_gate -- Type of entanglement gate (0=CNOT, 1=SWAP) \n
-    shift -- Value of shit of 'Paramenter shift rule' \n
+    shift -- Value of shift of 'Parameter shift rule' \n
     shots -- Number of Shots \n
     val_g -- serial description of the rotational gates  \n
     """
+
+    gradient = np.zeros_like(pars)
+
+    # Prepariamo i parametri per il multiprocessing
+    args = [(i, lambda1, pars, num_qub, num_l, val_g, shift, ent_gate, newspop, shots) for i in range(len(pars))]
+
+    # Utilizziamo Pool per parallelizzare
+    with Pool(processes = 4) as pool:
+        results = pool.map(qndm_derivative, args)
+
+    # Inseriamo i risultati nei gradienti
+    for i, res in enumerate(results):
+        gradient[i] = res
+
+    return gradient
+
+
+
+
+#==========================================================#
+#
+# DM gradient calculation
+#==========================================================#
+
+def dm_derivative(args):
     
-    for shift_position in range(len(val_g)):
-        qndm_derivative(lambda1, pars ,shift_position, newspop, num_qub, num_l, ent_gate, shift, G_real_qndm,shots,val_g)
+    i, cas, shift, n_qubits, n_layers, lay_u, ent_gate, shots, spop, val_g = args
+
+    cas_plus  = np.copy(cas)
+    cas_minus = np.copy(cas)
+
+    # Apply shift
+    cas_plus[i]  += shift
+    cas_minus[i] -= shift
+
+    # Calculate expectation values for shifted parameters
+    mean_plus  = cost_function(cas_plus,  n_qubits, n_layers, lay_u, val_g, shift, ent_gate, spop, shots)
+    mean_minus = cost_function(cas_minus, n_qubits, n_layers, lay_u, val_g, shift, ent_gate, spop, shots)
+
+    # Calculate gradient for the i-th parameter
+    gradient_component = (mean_plus.item() - mean_minus.item()) / (2 * np.sin(shift))
+    return gradient_component
 
 
-#---------------------------------------------------------------------------------------------------------------------------------------------------
-#####################################
-#                                   #
-#            Gradient DM            #      
-#                                   #
-#####################################
 
-def dm_derivative(initial_pameter,shift_position,num_qub,num_l, ent_gate, shift,kk,val_g,shots,G_real_dm,cps,k): 
+def dm_gradient(pars, spop, n_qubits, n_layers, lay_u, ent_gate, shift, shots, val_g):
+    """
+    Calculates the gradient using the parameter shift rule.
+    """
 
-    # Setup qubit register
-    q_reg_size = num_qub #numbers of qubit
-    q_reg_size_c= num_qub #numbers of classic bit
+    gradient = np.zeros_like(pars)
 
-    #quantum circuit
-    q_reg = QuantumRegister(q_reg_size, "q")
-    c_reg = ClassicalRegister(q_reg_size_c, "c")
-    bc = QuantumCircuit(q_reg, c_reg, name="DM")
+    # Prepariamo i parametri per il multiprocessing
+    args = [(i, pars, shift, n_qubits, n_layers, lay_u, ent_gate, shots, spop, val_g) for i in range(len(pars))]
 
-    #quantum circuit: "DM (manual) for gradient"
-    dm_gradient_circuit(bc, shift_position,num_qub,num_l,val_g,shift,kk,ent_gate)
-    
-    #parameters vector
-    initial_values = []
-    for i in range(len(initial_pameter)):
-      initial_values.append(initial_pameter[i])
+    # Utilizziamo Pool per parallelizzare
+    with Pool(processes = 4) as pool:
+        results = pool.map(dm_derivative, args)
 
-    #parameters initialization
-    param_dict = dict(zip(bc.parameters, initial_values))
-    circ=bc.bind_parameters(param_dict) 
+    # Inseriamo i risultati nei gradienti
+    for i, res in enumerate(results):
+        gradient[i] = res
 
-    #measuring lists
-    qubit_index = []
-    qubit_index2 = []
-    for i in range(num_qub):
-      qubit_index.append(num_qub-i-1)
-      qubit_index2.append(i)
-
-    # measure the system qubits
-    circ.measure(qubit_index, qubit_index2)
-
-    #backend
-    backend = BasicAer.get_backend('qasm_simulator')
- 
-    #run quantum circuit
-    job = execute(circ, backend=backend, shots=shots)
-    result = job.result()
-    data = result.get_counts(circ)
-
-    #extract counts    
-    minus = 0.
-    plus = 0.
-    for l in data.keys():
-        
-        one_counter = 0 
-        for jk,char in enumerate(l):
-            if char == '1'and kk[num_qub-jk-1]!='I':
-          
-                one_counter += 1
-        if one_counter % 2 != 0:
-       
-                minus += data[l]/shots
-
-        else:
-                plus += data[l]/shots
-
-    #estimation cost function for a single pauli string
-    mean_val = -plus+minus
-
-    #derivative in the direction e_(shift_position) 
-    G_real_dm[shift_position] += np.real(cps[k])*mean_val/(2*sin(shift)) # probability of |0> in the system state
-    
-    return None 
-
-
-#---------------------------------------------------------------------------------------------------------------------------------------------------
-# Gradient calculation DM 
-def dm_gradient(pars ,G_real_dm, spop, num_qub, num_l, ent_gate,shift,shots,val_g):
-    """Calculate first order derivatives with Direct Measurament method. \n
-
-    #Paramenters: \n
-    pars -- Parameters of the rotational gates \n
-    G_real_dm -- Empty array where the function put the derivatives information \n
-    spop -- Hamiltonian \n
-    num_qub -- Number of Qubits \n
-    num_l -- Number of Layer \n
-    shift -- Value of shit of 'Paramenter shift rule' \n
-    shots -- Number of Shots \n
-    val_g -- serial description of the rotational gates  \n
-    """            
-    
-    for shift_position in range(len(val_g)):
-        for k,kk in enumerate(spop.paulis):
-
-            for shift_sign in range(2):
-                if shift_sign == 1:
-                    shift *=-1 
-                        
-                dm_derivative(pars,shift_position, num_qub, num_l, ent_gate,shift, kk,val_g,shots,G_real_dm,spop.coeffs,k)
-            shift = abs(shift)
-
-    return None 
+    return gradient
 
 
 
@@ -213,225 +238,162 @@ def dm_gradient(pars ,G_real_dm, spop, num_qub, num_l, ent_gate,shift,shots,val_
 #                                   #
 #####################################
 
-#//////////#
-#   main   #
-#//////////#
-
-def qndm_derivative_hessian(lambda1, initial_pameter,sh1,sh2,newspop,num_qub,num_l,ent_gate,shift,G_real_qndm,H_real_qndm,shots,val_g, gradient_calc): 
-
+def qndm_derivative_hessian(lambda1, initial_parameter, sh1, sh2, newspop, num_qub, num_l, ent_gate, shift, G_real_qndm, H_real_qndm, shots, val_g, gradient_calc): 
     # Setup qubit register
-    q_reg_size = num_qub + 1 #numbers of qubit (sys + det)
-    q_reg_size_c = 1 #numbers of classic bit
-    detect_index=num_qub #index number of the detector qubit
+    q_reg_size = num_qub + 1  # numbers of qubit (sys + det)
+    q_reg_size_c = 1  # numbers of classic bit
+    detect_index = num_qub  # index number of the detector qubit
 
-    #quantum circuit
+    # quantum circuit
     q_reg = QuantumRegister(q_reg_size, "q")
     c_reg = ClassicalRegister(q_reg_size_c, "c")
 
-    #balacing of lambda in function of hamiltonian
-    lambda1 = get_lambda_balancing(newspop,lambda1) 
+    # balancing of lambda in function of Hamiltonian
+    lambda1 = get_lambda_balancing(newspop, lambda1) 
 
-    #hessian
+    # hessian
     bc_hess = QuantumCircuit(q_reg, c_reg, name="QNDM_hess")
 
-    #quantum circuit: "QNDM for hessian"
-    qndm_hessian_circuit(bc_hess, sh1,sh2,newspop,num_qub,num_l,detect_index,shift,val_g,ent_gate)
+    # quantum circuit: "QNDM for hessian"
+    qndm_hessian_circuit(bc_hess, sh1, sh2, newspop, num_qub, num_l, detect_index, shift, val_g, ent_gate)
     
-    #parameters vector
-    initial_values_hess = [lambda1/2,lambda1/2,lambda1/2,lambda1/2]
-    for i in range(len(val_g)):
-      initial_values_hess.append(initial_pameter[i])
-
-    #parameters initialization
+    # parameters vector
+    initial_values_hess = [lambda1 / 2] * 4 + list(initial_parameter)
     param_dict = dict(zip(bc_hess.parameters, initial_values_hess))
-    circ_hess=bc_hess.bind_parameters(param_dict)
+    circ_hess = bc_hess.bind_parameters(param_dict)
 
     # measure the detector qubit
     circ_hess.measure(detect_index, 0)
 
-    #backend
-    backend = BasicAer.get_backend('qasm_simulator')
+    # simulator
+    simulator = AerSimulator()
 
-    #run quantum circuit
-    job = execute(circ_hess, backend=backend, shots=shots)
-    result = job.result()
-    data = result.get_counts(circ_hess)   
+    # run quantum circuit
+    sim_result = simulator.run(circ_hess, shots=shots).result()
+    data = sim_result.get_counts(circ_hess)
 
-    p0_hess,p1_hess = 0,0
-
-    #extract counts
+    p0, p1 = 0, 0
+    # extract counts
     for l in data.keys():
-        if l == '0': # counts for detector in zero state
-           p0_hess += data[l]/shots # probability of |0> in the detector state
-             
-        elif l == '1': # counts for detector in one state
-           p1_hess += data[l]/shots # probability of |1> in the detector state
-              
-    #hessian in the direction e_(sh1) e e_(sh2)   
-    H_real_qndm[sh1,sh2] = asin(2*p1_hess-1)/(4*sin(shift)**2*lambda1)
+        if l == '0':
+            p0 += data[l] / shots  # probability of |0> in the detector state
+        elif l == '1':
+            p1 += data[l] / shots  # probability of |1> in the detector state
 
-    #if true the code calculates also the gradient
-    if gradient_calc == True:
-        qndm_derivative(lambda1, initial_pameter ,sh1, newspop, num_qub, num_l, ent_gate, shift, G_real_qndm,shots,val_g)
-        
+    # Hessian in the direction e_(sh1, sh2)
+    if gradient_calc:
+        G_real_qndm[sh1] += 2 * (2 * p1 - 1) / (4 * lambda1)
+    H_real_qndm[sh1][sh2] += 2 * (2 * p1 - 1) / (4 * lambda1)
 
-    return
+    return None 
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------
-# Hessian calculation QNDM
-def qndm_hessian(lambda1, pars ,G_real_qndm, H_real_qndm, newspop, num_qub, num_l, ent_gate, shift,shots,val_g, gradient_calc = False):
-    """Calculate Second order derivatives with QNDM method. \n
+# Hessian calculation QNDM 
+def qndm_hessian(lambda1, pars, newspop, num_qub, num_l, ent_gate, shift, shots, val_g):
+    """Calculate second order derivatives with QNDM method. \n
 
-    #Paramenters: \n
-    lambda1 -- Value of coupling paramenter
+    # Parameters: \n
+    lambda1 -- Value of coupling parameter \n
     pars -- Parameters of the rotational gates \n
-    G_real_qndm -- Empty array where the function put the first derivatives information \n
-    H_real_qndm -- Empty array where the function put the second derivatives information \n
     newspop -- Hamiltonian \n
     num_qub -- Number of Qubits \n
     num_l -- Number of Layer \n
     ent_gate -- Type of entanglement gate (0=CNOT, 1=SWAP) \n
-    shift -- Value of shit of 'Paramenter shift rule' \n
+    shift -- Value of shift of 'Parameter shift rule' \n
     shots -- Number of Shots \n
     val_g -- serial description of the rotational gates  \n
-    gradient_calc -- If True the function given in output also the gradient
     """
- 
+    
+    G_real_qndm = np.zeros(len(val_g))
+    H_real_qndm = np.zeros((len(val_g), len(val_g)))
+
     for sh1 in range(len(val_g)):
         for sh2 in range(len(val_g)):
-            qndm_derivative_hessian(lambda1, pars,sh1,sh2,newspop,num_qub,num_l,ent_gate,shift,G_real_qndm,H_real_qndm,shots,val_g, gradient_calc)
-            
+            qndm_derivative_hessian(lambda1, pars, sh1, sh2, newspop, num_qub, num_l, ent_gate, shift, G_real_qndm, H_real_qndm, shots, val_g, sh1 == sh2)
+    
+    return None
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------
 #####################################
 #                                   #
-#            Hessian DM             #      
+#            Hessian DM            #      
 #                                   #
 #####################################
 
-#//////////#
-#   main   #
-#//////////#
-
-def dm_derivative_hessian(initial_pameter,sh1,sh2,num_qub,num_l,ent_gate,shift1,shift2,kk,val_g,shots,G_real_dm, H_real_dm,cps,k, gradient_calc): 
-
-
+def dm_derivative_hessian(initial_parameter, sh1, sh2, num_qub, num_l, ent_gate, shift, kk, val_g, shots, H_real_dm, cps, k): 
     # Setup qubit register
-    q_reg_size = num_qub #numbers of qubit 
-    q_reg_size_c= num_qub #numbers of classic bit
+    q_reg_size = num_qub  # numbers of qubit
+    q_reg_size_c = num_qub  # numbers of classic bit
 
-    #quantum circuit
+    # quantum circuit
     q_reg = QuantumRegister(q_reg_size, "q")
     c_reg = ClassicalRegister(q_reg_size_c, "c")
-    bc_hess = QuantumCircuit(q_reg, c_reg, name="DM")
+    bc = QuantumCircuit(q_reg, c_reg, name="DM_hess")
 
-    #quantum circuit: "DM (manual) for gradient"
-    dm_hessian_circuit(bc_hess,sh1,sh2,num_qub,num_l,val_g,shift1,shift2,kk,ent_gate)
+    # quantum circuit: "DM (manual) for hessian"
+    dm_hessian_circuit(bc, sh1, sh2, num_qub, num_l, val_g, shift, kk, ent_gate)
 
-    #paramenters vector
-    initial_values = []
-    for i in range(len(initial_pameter)):
-      initial_values.append(initial_pameter[i])
+    # parameters vector
+    initial_values = initial_parameter
+    param_dict = dict(zip(bc.parameters, initial_values))
+    circ = bc.bind_parameters(param_dict) 
 
-    #parameters initialization
-    param_dict = dict(zip(bc_hess.parameters, initial_values))
-    circ_hess=bc_hess.bind_parameters(param_dict)
-
-    
-    #measuring lists
-    qubit_index = []
-    qubit_index2 = []
-    for i in range(num_qub):
-      qubit_index.append(num_qub-i-1)
-      qubit_index2.append(i)
+    # measuring lists
+    qubit_index = list(range(num_qub - 1, -1, -1))
+    qubit_index2 = list(range(num_qub))
 
     # measure the system qubits
-    circ_hess.measure(qubit_index, qubit_index2)
+    circ.measure(qubit_index, qubit_index2)
 
-    #backend
-    backend = BasicAer.get_backend('qasm_simulator')
- 
-    #run quantum circuit 
-    job = execute(circ_hess, backend=backend, shots=shots)
-    result = job.result()
-    data = result.get_counts(circ_hess)
+    # simulator
+    simulator = AerSimulator()
 
-    #extract counts
+    # run quantum circuit
+    sim_result = simulator.run(circ, shots=shots).result()
+    data = sim_result.get_counts(circ)
+
+    # extract counts    
     minus = 0.
     plus = 0.
+    
     for l in data.keys():
+        one_counter = sum(1 for jk, char in enumerate(l) if char == '1' and kk[num_qub - jk - 1] != 'I')
         
-        one_counter = 0 
-        for jk,char in enumerate(l):
-            if char == '1'and kk[num_qub-jk-1]!='I':
-          
-                one_counter += 1
         if one_counter % 2 != 0:
-       
-                minus += data[l]/shots
-
+            minus += data[l] / shots
         else:
-                plus += data[l]/shots
+            plus += data[l] / shots
 
-    #estimation cost function for a single pauli string
-    mean_val = -plus+minus
+    # Hessian estimation cost function for a single pauli string
+    mean_val = -plus + minus
+    H_real_dm[sh1][sh2] += np.real(cps[k]) * mean_val / (4 * sin(shift))  # probability of |0> in the system state
+    
+    return None 
 
-    #hessian in the direction e_(sh1) e e_(sh2)   
-    if shift1 <0 and shift2 <0:
-        H_real_dm[sh1,sh2] -= np.real(cps[k]*mean_val/(4*(sin(shift1))**2)) # probability of |0> in the system state
-
-    if shift1 <0 and shift2 >0:
-        H_real_dm[sh1,sh2] += np.real(cps[k]*mean_val/(4*(sin(shift1))**2)) # probability of |0> in the system state
-
-    if shift1 >0 and shift2 <0:
-        H_real_dm[sh1,sh2] += np.real(cps[k]*mean_val/(4*(sin(shift1))**2)) # probability of |0> in the system state
-
-    if shift1 >0 and shift2 >0:    
-        H_real_dm[sh1,sh2] -= np.real(cps[k]*mean_val/(4*(sin(shift1))**2)) # probability of |0> in the system state
-   
-
-    #if true the code calculates also the gradient
-    if gradient_calc == True and sh2 == 0 :
-
-        dm_derivative(initial_pameter,sh1, num_qub, num_l, ent_gate,shift1, kk,val_g,shots,G_real_dm,cps/2,k)
-
-    return
 #---------------------------------------------------------------------------------------------------------------------------------------------------
-# Hessian calculation QNDM
-def dm_hessian(pars ,G_real_dm, H_real_dm, spop, num_qub, num_l,ent_gate, shift,shots,val_g, gradient_calc = False):
-    """Calculate Second order derivatives with DM method. \n
+# Hessian calculation DM 
+def dm_hessian(pars, H_real_dm, spop, num_qub, num_l, ent_gate, shift, shots, val_g):
+    """Calculate second order derivatives with Direct Measurement method. \n
 
-    #Paramenters: \n
-
+    # Parameters: \n
     pars -- Parameters of the rotational gates \n
-    G_real_qndm -- Empty array where the function put the first derivatives information \n
-    H_real_qndm -- Empty array where the function put the second derivatives information \n
-    PS -- Pauli string \n 
+    H_real_dm -- Empty array where the function puts the Hessians information \n
+    spop -- Hamiltonian \n
     num_qub -- Number of Qubits \n
     num_l -- Number of Layer \n
-    shift -- Value of shit of 'Paramenter shift rule' \n
+    shift -- Value of shift of 'Parameter shift rule' \n
     shots -- Number of Shots \n
     val_g -- serial description of the rotational gates  \n
-    cps -- Coefficient Pauli strings \n
-    gradient_calc -- If True the function given in output also the gradient"""
-
+    """            
+    
     for sh1 in range(len(val_g)):
-        for sh2 in range(len(val_g)):
-            for k,kk in enumerate(spop.paulis):
-                #sign of shift
-                for shift_sign in range(4):
-                    shift1 = shift
-                    shift2 = shift   
-
+        for k, kk in enumerate(spop.paulis):
+            for sh2 in range(len(val_g)):
+                for shift_sign in range(2):
                     if shift_sign == 1:
-                        shift1 = -shift
+                        shift *= -1 
+                        
+                    dm_derivative_hessian(pars, sh1, sh2, num_qub, num_l, ent_gate, shift, kk, val_g, shots, H_real_dm, spop.coeffs, k)
+                shift = abs(shift)
 
-                    elif shift_sign == 2:
-                        shift2 = -shift
-
-                    elif shift_sign == 3:
-                        shift1 = -shift
-                        shift2 = -shift
-
-
-                    dm_derivative_hessian(pars,sh1,sh2,num_qub,num_l,ent_gate,shift1,shift2,kk,val_g,shots,G_real_dm, H_real_dm,spop.coeffs,k, gradient_calc)
+    return None 

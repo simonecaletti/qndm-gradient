@@ -36,8 +36,11 @@ def make_request(url):
 def get_nqubit(op_fname, key):
     
     with h5py.File(op_fname, "r") as f:
-        ham_str = f[key][()].decode("utf-8") #This object is a string
+        #ham_str = f[key][()].decode("utf-8") #This object is a string
  
+        ham_str = f[key][()]  # This object is already a string in Python 3
+
+
     protolist = ham_str.split("+\n")
     for pl in protolist:
         x = pl.split(" ", 1)
@@ -60,8 +63,10 @@ def get_nqubit(op_fname, key):
 def get_hamiltonian(op_fname, key, num_qub):
 
     with h5py.File(op_fname, "r") as f:
-        ham_str = f[key][()].decode("utf-8") #This object is a string
+        #ham_str = f[key][()].decode("utf-8") #This object is a string
     
+        ham_str = f[key][()]  
+
     PS, cps = str_to_ham(ham_str, num_qub)
 
     return PS, cps

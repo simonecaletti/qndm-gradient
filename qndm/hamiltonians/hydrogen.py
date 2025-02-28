@@ -96,9 +96,7 @@ def get_model(n, shape, r, selected_key):
     if status == 200:
         model["url"] = newurl
         model["fname"] = fname
-        model["opfname"] = opfname
-        #print(model)
-        
+        model["opfname"] = opfname        
     
     elif status == 404:
         print("Error: the provided url is not valid.")
