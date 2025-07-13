@@ -1,0 +1,3 @@
+[submodule "scripts/examples/mat2qubit"]
+	path = scripts/examples/mat2qubit
+	url = https://github.com/IntelLabs/mat2qubit.git
