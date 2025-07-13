@@ -72,7 +72,7 @@ def read_gates_var(output_dir, read_gates: str, n_qubits: int, n_layers: int):
 #
 #==========================================================#
 
-def print_run_card(output_dir : str, n_qubits : int, n_layers : int, parameters, val_g, n_shots, spop, ent_gate, lr, method: str, lambda1 = 0, shift=np.pi/2):
+def print_run_card(output_dir : str, n_qubits : int, n_layers : int, parameters, val_g, n_shots, spop, ent_gate, method: str, lr = None, lambda1 = 0, shift=np.pi/2):
 
     # Controllo se output_dir è vuota
     if output_dir == '':

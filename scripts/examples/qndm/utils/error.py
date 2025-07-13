@@ -26,7 +26,7 @@ def get_qndm_error(pars, G_real_qndm, lambda1, shots, shift=np.pi/2):
 
 #DM error first derivative
 def get_dm_error(pars, spop, shots, shift=np.pi/2):
-    error = np.zeros(pars)
+    error = np.zeros(len(pars))
     error[:] = (1/(np.sqrt(2*shots)*np.sin(shift)))*sum(np.real(np.asarray(spop.coeffs)))
     
     return error

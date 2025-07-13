@@ -22,7 +22,8 @@ def ent(circ, x, ent_gate):
 #####################################
 
 #Unitary trasformation: U1:|00...0>->|\psi(\theta - shift*e_(shift_position))
-def U1(val_g, par_var, num_qu, num_l,  shift, shift_pos, ent_gate):
+def U1(val_g, par_var, num_qu, num_l,  shift, shift_pos = 0 , ent_gate= 0):
+  # TODO for all this function add doc strings and argument types in the signature of the functions
 
   #quantum register
   q_reg = QuantumRegister(num_qu, "q")
@@ -66,7 +67,7 @@ def U1(val_g, par_var, num_qu, num_l,  shift, shift_pos, ent_gate):
   return circ
 
 #second unitary trasformation: U1_dag|\psi(\theta - shift*e_(shift_position))->|00...0>
-def U1_dag(val_g,par_var,num_qu,num_l,shift,shift_pos,ent_gate):
+def U1_dag(val_g,par_var,num_qu,num_l,shift,shift_pos = 0 ,ent_gate = 0 ):
 
   #quantum register
   q_reg = QuantumRegister(num_qu, "q")
@@ -110,7 +111,7 @@ def U1_dag(val_g,par_var,num_qu,num_l,shift,shift_pos,ent_gate):
   return circ
 
 #third unitary trasformation: U2:|00...0>->|\psi(\theta + shift*e_(shift_position))
-def U2(val_g,par_var,num_qu,num_l,shift,shift_pos,ent_gate):
+def U2(val_g,par_var,num_qu,num_l,shift,shift_pos= 0,ent_gate= 0):
 
 
   #quantum register

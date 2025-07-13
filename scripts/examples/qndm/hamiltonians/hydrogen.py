@@ -6,7 +6,6 @@ from qndm.hamiltonians.interface import make_request, get_hamiltonian, get_nqubi
 from qndm.hamlib.structure import get_hdf5_keys
 import sys
 from string import Template
-
 #-------------------------------------------------
 
 def get_model(n, shape, r, selected_key):
@@ -14,7 +13,7 @@ def get_model(n, shape, r, selected_key):
     init_url = "https://portal.nersc.gov/cfs/m888/dcamps/hamlib/chemistry/electronic/hydrogen_data/"
 
     #Cases explored by hand (the number is n)
-    end_url2  = "H2_linear/ES_H2_linear_R${r}_sto-6g.hdf5.zip"
+    end_url2  = "H2_linear/ES_H2_linear_R${r}_sto-6g.zip"
     end_url4  = "H4_linear/ES_H4_linear_R${r}_sto-6g_ham.hdf5.zip"
     end_url6  = "H6_linear/ES_H6_linear_R${r}_sto-6g_ham.hdf5.zip"
     end_url8  = "H8_linear/ES_H8_linear_R${r}_sto-6g_ham.hdf5.zip"

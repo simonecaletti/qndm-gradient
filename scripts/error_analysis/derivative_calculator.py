@@ -53,9 +53,9 @@ from qiskit_ibm_runtime import SamplerV2
 
 from qndm.core import *
 from qndm.hamiltonians.examples import *
-from qndm.tools.error import get_qndm_error
+from qndm.utils.error import get_qndm_error
 from qndm.layers.unitaries_gradient import *
-from qndm.tools.error import get_dm_error
+from qndm.utils.error import get_dm_error
 from qndm.layers.unitaries_gradient import *
 
 
@@ -141,7 +141,7 @@ print_run_card(output_dir, n_qubits, n_layers, parameters, val_g, shots, spop, e
 # Cost function with statevector 
 #==========================================================#
 
-def cost_function_statevector(cas, n_qubits, n_layers, lay_u, val_g, shift, ent_gate, spop):
+def expectation_value_statevector(cas, n_qubits, n_layers, lay_u, val_g, shift, ent_gate, spop):
     # Initialize the circuit
     circuit = QuantumCircuit(n_qubits)
     params = ParameterVector("theta", length=n_qubits * n_layers * lay_u)
@@ -181,8 +181,8 @@ def dm_derivative_statevector(args):
     cas_minus[i] -= shift
 
     # Calculate expectation values for shifted parameters
-    mean_plus  = cost_function_statevector(cas_plus,  n_qubits, n_layers, lay_u, val_g, shift, ent_gate, spop)
-    mean_minus = cost_function_statevector(cas_minus, n_qubits, n_layers, lay_u, val_g, shift, ent_gate, spop)
+    mean_plus  = expectation_value_statevector(cas_plus,  n_qubits, n_layers, lay_u, val_g, shift, ent_gate, spop)
+    mean_minus = expectation_value_statevector(cas_minus, n_qubits, n_layers, lay_u, val_g, shift, ent_gate, spop)
 
     # Calculate gradient for the i-th parameter
     gradient_component = (mean_plus - mean_minus) / (2 * np.sin(shift))

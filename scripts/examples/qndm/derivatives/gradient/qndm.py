@@ -53,3 +53,38 @@ def qndm_gradient_circuit(circ,shift_position,pm,num_qub,num_l,val_g,q_d,shift,e
 
   return None
 
+
+#Quantum Circuit
+def qndm_expectation_value_circuit(circ,pm,num_qub,num_l,val_g,q_d,shift,ent_gate):
+  ### TODO Create new file for this function
+
+  #initialization of detector
+  circ.h(q_d)
+
+  #initialization of paramenters \theta vector 
+  params = ParameterVector("theta", length=len(val_g))
+
+  #Lists with the qubits position information to compose circ with the U and the PauliEvolutionGates
+  qubits_U = []
+  qubits_exp = []
+  for i in range(num_qub):
+    qubits_U.append(i)
+    qubits_exp.append(i)
+  qubits_exp.insert(0,num_qub)
+
+  #first unitary trasformation: U1:|00...0>->|\psi(\theta - shift*e_(shift_position))
+  unitary1=U1(val_g,params,num_qub,num_l,shift,ent_gate)
+  circ.compose(unitary1, qubits=qubits_U, inplace=True)
+
+  #first coupling interation
+  evo_time = Parameter('p_deco')
+  trotterized_op = PauliEvolutionGate(pm,evo_time)
+  circ.append(trotterized_op, qubits_exp)
+  
+
+  #qubit for measure the detector
+  circ.h(q_d)
+  circ.s(q_d)
+  circ.h(q_d)
+
+  return None

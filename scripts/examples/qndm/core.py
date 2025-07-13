@@ -17,16 +17,14 @@ from multiprocessing import Pool, cpu_count
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit_aer import AerSimulator
 from qiskit.compiler import transpile
-from qiskit_ibm_runtime.fake_provider import FakeManilaV2
-from qiskit.circuit import Parameter, ParameterVector, QuantumCircuit
+from qiskit.circuit import ParameterVector, QuantumCircuit
 
 
 # 
 # QNDM packages importation
 #----------------------------------------------------------#
 
-from qndm.derivatives.gradient.qndm import qndm_gradient_circuit
-from qndm.derivatives.gradient.dm import dm_gradient_circuit
+from qndm.derivatives.gradient.qndm import qndm_gradient_circuit, qndm_expectation_value_circuit
 from qndm.derivatives.hessian.qndm import qndm_hessian_circuit
 from qndm.derivatives.hessian.dm import dm_hessian_circuit
 from qndm.hamiltonians.normalization.lam_balancing import get_lambda_balancing
@@ -36,16 +34,11 @@ from qndm.hamiltonians.normalization.lam_balancing import get_lambda_balancing
 # QISKIT packages importation
 #----------------------------------------------------------#
 
-from qiskit.circuit import QuantumCircuit
-from qiskit.quantum_info import SparsePauliOp
+from qiskit.circuit import QuantumCircuit, ParameterVector
 from qiskit.primitives import Estimator
 from qiskit import transpile
 from qiskit_aer import AerSimulator
-from qiskit_aer.noise import NoiseModel
 from qiskit.providers.fake_provider import *
-from qiskit.circuit import Parameter, ParameterVector, QuantumCircuit
-from qiskit import QuantumCircuit
-from qiskit.quantum_info import Statevector
 
 
 # 
@@ -55,7 +48,6 @@ from qiskit.quantum_info import Statevector
 from qndm.utils import *
 from qndm.hamiltonians.examples import *
 from qndm.layers.unitaries_gradient import *
-from qndm.hamiltonians.lithium import get_model_lithium, get_model_OH
 from qndm.layers.unitaries_gradient import *
 
 # simulator
@@ -66,10 +58,10 @@ simulator = AerSimulator()
 
 #==========================================================#
 #
-# Cost function 
+#  EXPECTATION VALUE DM
 #==========================================================#
 
-def cost_function(parameters, n_qubits : int, n_layers : int, lay_u : int, val_g, shift : float, ent_gate : int, spop, shots : int):
+def expectation_value(parameters, n_qubits : int, n_layers : int, lay_u : int, val_g: np.ndarray, ent_gate : int, spop, shots : int, shift:int = 0):
     # circuit initialization
     circuit = QuantumCircuit(n_qubits)
     params  = ParameterVector("theta", length=n_qubits * n_layers * lay_u)
@@ -84,6 +76,66 @@ def cost_function(parameters, n_qubits : int, n_layers : int, lay_u : int, val_g
     expectation_value = estimator.run(circuit, spop, parameters, shots=shots).result().values.real
 
     return expectation_value
+
+
+
+#==========================================================#
+#
+#  EXPECTATION VALUE QNDM
+#==========================================================#
+
+def expectation_value_qndm(args):
+
+    lambda1, pars, num_qub, num_l, val_g, shift, ent_gate, newspop, shots = args
+
+    # Setup qubit register
+    q_reg_size   = num_qub + 1  # numbers of qubit (sys + det)
+    q_reg_size_c = 1            # numbers of classic bit
+    detect_index = num_qub      # index number of the detector qubit
+
+    # quantum circuit
+    q_reg = QuantumRegister(q_reg_size, "q")
+    c_reg = ClassicalRegister(q_reg_size_c, "c")
+    bc = QuantumCircuit(q_reg, c_reg, name="QNDM")
+
+    # quantum circuit: "QNDM for gradient"
+    qndm_expectation_value_circuit(bc, newspop, num_qub, num_l, val_g, detect_index, shift, ent_gate)
+
+    #parameters vector
+    initial_values = [lambda1/2,lambda1/2]
+    for i in range(len(pars)):
+        initial_values.append(pars[i])
+
+    param_dict = dict(zip(bc.parameters, initial_values))
+
+    # Prepare the circuit with parameters
+    circ = bc.assign_parameters(param_dict)
+
+    # measure the detector qubit
+    circ.measure(detect_index, 0)
+
+    # transpile the circuit for optimization
+    transpiled_circ = transpile(circ, simulator)
+
+    # run quantum circuit with correct parameter binding
+    sim_result = simulator.run(transpiled_circ, parameter_binds=[param_dict], shots=shots).result()
+    data = sim_result.get_counts(transpiled_circ)
+
+    p0, p1 = 0, 0
+    # extract counts
+    for l in data.keys():
+        if l == '0':
+            p0 += data[l] / shots  # probability of |0> in the detector state
+        elif l == '1':
+            p1 += data[l] / shots  # probability of |1> in the detector state
+
+    # derivative in the direction e_(shift_position)
+    gradient_component = asin(2 * p1 - 1) / (2 * lambda1)
+
+    #print(f'gradient[{shift_position}] = {gradient_component}')
+    #print(shift_position)
+
+    return gradient_component
 
 
 
@@ -171,7 +223,7 @@ def qndm_gradient(lambda1, pars, newspop, num_qub, num_l, ent_gate, shift, shots
     args = [(i, lambda1, pars, num_qub, num_l, val_g, shift, ent_gate, newspop, shots) for i in range(len(pars))]
 
     # Utilizziamo Pool per parallelizzare
-    with Pool(processes = 4) as pool:
+    with Pool() as pool:
         results = pool.map(qndm_derivative, args)
 
     # Inseriamo i risultati nei gradienti
@@ -190,18 +242,18 @@ def qndm_gradient(lambda1, pars, newspop, num_qub, num_l, ent_gate, shift, shots
 
 def dm_derivative(args):
     
-    i, cas, shift, n_qubits, n_layers, lay_u, ent_gate, shots, spop, val_g = args
+    i, parameters, shift, n_qubits, n_layers, lay_u, ent_gate, shots, spop, val_g = args
 
-    cas_plus  = np.copy(cas)
-    cas_minus = np.copy(cas)
+    parameters_plus  = np.copy(parameters)
+    parameters_minus = np.copy(parameters)
 
     # Apply shift
-    cas_plus[i]  += shift
-    cas_minus[i] -= shift
+    parameters_plus[i]  += shift
+    parameters_minus[i] -= shift
 
     # Calculate expectation values for shifted parameters
-    mean_plus  = cost_function(cas_plus,  n_qubits, n_layers, lay_u, val_g, shift, ent_gate, spop, shots)
-    mean_minus = cost_function(cas_minus, n_qubits, n_layers, lay_u, val_g, shift, ent_gate, spop, shots)
+    mean_plus  = expectation_value(parameters= parameters_plus,  n_qubits = n_qubits, n_layers=n_layers, lay_u=lay_u, val_g=val_g, shift=shift, ent_gate=ent_gate, spop=spop, shots=shots)
+    mean_minus = expectation_value(parameters=parameters_minus, n_qubits = n_qubits, n_layers=n_layers, lay_u=lay_u, val_g=val_g, shift=shift, ent_gate=ent_gate, spop=spop, shots=shots)
 
     # Calculate gradient for the i-th parameter
     gradient_component = (mean_plus.item() - mean_minus.item()) / (2 * np.sin(shift))

@@ -25,8 +25,8 @@ from qndm.hamiltonians.examples import get_SparsePauliOp
 from qndm.core import *
 from qndm.hamiltonians.examples import get_hamiltonian
 from qndm.hamiltonians.hydrogen import get_model
-from qndm.tools.error import get_dm_error_second
-from qndm.tools.runcard import print_runcard
+from qndm.utils.error import get_dm_error_second
+from qndm.utils.io_tools import print_run_card
 
 
 #---------------------------------------------------------------------------------------------
@@ -122,7 +122,7 @@ shift = pi/2
 
 #R U N - C A R D#
 
-print_runcard(num_qub, num_l, val_g, spop, shots, ent_gate=0, output_path="./output_test")
+print_run_card(num_qub, num_l, val_g, spop, shots, ent_gate=0, output_path="./output_test")
 
 #------------------------------------------------------------------
 

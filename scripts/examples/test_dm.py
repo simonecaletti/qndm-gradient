@@ -10,7 +10,6 @@
 #--------------------------------------------------------------------------------------------
 
 import os
-import sys
 import pandas as pd
 import numpy as np
 from math import pi
@@ -22,8 +21,7 @@ from qndm.hamiltonians.examples import get_SparsePauliOp
 from qndm.core import *
 from qndm.hamiltonians.examples import get_hamiltonian
 from qndm.hamiltonians.hydrogen import get_model
-from qndm.tools.error import get_dm_error
-from qndm.tools.runcard import print_runcard
+from qndm.utils.error import get_dm_error
 
 
 #---------------------------------------------------------------------------------------------
@@ -34,7 +32,7 @@ from qndm.tools.runcard import print_runcard
 #                          #
 ############################
 
-hamlib_ = True
+hamlib_ = False
 
 if hamlib_ == True:
     # Input to use with the qndm.hamiltonians.hydrogen package
@@ -55,13 +53,13 @@ if hamlib_ == True:
 else:
 
     #number of qubit of the quantum register
-    num_qub = 4
+    num_qub = 2
 
     #select the pauli string number
     pauli_string = 2
 
     #hamiltonians M
-    PS, cps = get_hamiltonian(num_qub, pauli_string)
+    PS, cps = get_hamiltonian(num_qub, pauli_string,sel=10)
 
 
 spop = get_SparsePauliOp(PS, cps) #spop = sparse pauli operator
@@ -107,7 +105,7 @@ pars = np.random.rand(n_pars)
 
 # Input to use with the qndm.hamiltonians.example package
 
-shots = 50000 #number shots for a single evaluation
+shots = 50 #number shots for a single evaluation
 
 #shift (paramenter shift rule)
 shift = pi/2 
@@ -117,7 +115,6 @@ shift = pi/2
 
 #--------------------------------------------------------------------------------------------
 #R U N - C A R D#
-print_runcard(num_qub, num_l, val_g, spop, shots, ent_gate=0,shift=np.pi/2, output_path="./output_test")
 #------------------------------------------------------------------
 
 print("Into the derivatives process...", end="")
@@ -128,18 +125,20 @@ G_real_dm = np.zeros(n_pars)
 
 
 #gradient with DM
-dm_gradient(pars = pars,
-            G_real_dm = G_real_dm,
+if __name__ == '__main__':
+
+    G_real_dm = dm_gradient(pars = pars,
             spop = spop,
-            num_qub = num_qub,
-            num_l = num_l,
+            n_qubits = num_qub,
+            lay_u = lay_u,
+            n_layers = num_l,
             ent_gate = ent_gate,
             shift = shift,
             shots = shots,
             val_g = val_g)
 
 #error calculation:
-error_DM = get_dm_error(n_pars, spop, shots, shift=np.pi/2)
+error_DM = get_dm_error(pars, spop, shots, shift=np.pi/2)
 
 
 print(" done!")

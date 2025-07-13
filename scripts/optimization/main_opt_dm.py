@@ -152,7 +152,8 @@ for i in tqdm(range(n_iter), desc = 'Iteration : ', leave=True):
 
     start_time = time.time()
     
-    cost_list[i] = cost_function(parameters, n_qubits, n_layers, lay_u, val_g, shift, ent_gate, spop, shots)
+    cost_list[i] = expectation_value(parameters= parameters,  n_qubits = n_qubits, n_layers=n_layers, lay_u=lay_u, val_g=val_g, shift=shift, ent_gate=ent_gate, spop=spop, shots=shots)
+
     
     print(f'{i + 1}/{n_iter}, {cost_list[i]}')
 
