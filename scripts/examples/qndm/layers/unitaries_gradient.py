@@ -25,6 +25,9 @@ def ent(circ, x, ent_gate):
 def U1(val_g, par_var, num_qu, num_l,  shift, shift_pos = 0 , ent_gate= 0):
   # TODO for all this function add doc strings and argument types in the signature of the functions
 
+  print("ciao")
+  print(shift)
+
   #quantum register
   q_reg = QuantumRegister(num_qu, "q")
   #quantum circuit
@@ -47,6 +50,10 @@ def U1(val_g, par_var, num_qu, num_l,  shift, shift_pos = 0 , ent_gate= 0):
 
     elif val_g[k]==3:
       if k == shift_pos:
+        print("ciao2")
+        print(par_var[k]-shift)
+        print("ciao2")
+
         circ.rz(par_var[k]-shift,k%num_qu)
       else: 
         circ.rz(par_var[k],k%num_qu)

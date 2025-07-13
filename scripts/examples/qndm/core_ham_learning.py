@@ -144,7 +144,89 @@ def expectation_value_qndm(lambda1, pars, num_qub, num_l, val_g, shift, ent_gate
     return gradient_component
 
 
+#==========================================================#
+#
+#  TEST: what happen if I do multiple measuraments? After measuring the detector how the state change?
+#==========================================================#
 
+def distribution_before_after_detector_measurament(lambda1, pars, num_qub, num_l, val_g, shift, ent_gate, newspop, shots):
+    # TODO add docstring remove all the referement to the gradient
+
+
+    # Setup qubit register
+    q_reg_size   = num_qub + 1  # numbers of qubit (sys + det)
+    q_reg_size_c = num_qub + 1  # numbers of classic bit
+    detect_index = num_qub      # index number of the detector qubit
+
+    #parameters vector
+    initial_values = [lambda1/2]
+    for i in range(len(pars)):
+        initial_values.append(pars[i])
+
+    # quantum circuit
+    q_reg = QuantumRegister(q_reg_size, "q")
+    c_reg = ClassicalRegister(q_reg_size_c, "c")
+
+    bc = QuantumCircuit(q_reg, c_reg, name="QNDM")
+
+    # quantum circuit: "QNDM for gradient"
+    qndm_expectation_value_circuit(bc, newspop, num_qub, num_l, val_g, detect_index, shift, ent_gate)
+
+    param_dict = dict(zip(bc.parameters, initial_values))
+
+    # Prepare the circuit with parameters
+    circ = bc.assign_parameters(param_dict)
+
+
+    # measure the detector qubit
+    circ.measure([i for i in range(num_qub)], [i for i in range(num_qub-1,-1,-1)])
+
+    print("Circ one")
+
+    print(circ)
+
+
+    # transpile the circuit for optimization
+    transpiled_circ = transpile(circ, simulator)
+
+    # run quantum circuit with correct parameter binding
+    sim_result = simulator.run(transpiled_circ, parameter_binds=[param_dict], shots=shots).result()
+    data_before_detector_measure = sim_result.get_counts(transpiled_circ)
+
+    # quantum circuit
+    q_reg = QuantumRegister(q_reg_size, "q")
+    c_reg = ClassicalRegister(q_reg_size_c, "c")
+
+    bc = QuantumCircuit(q_reg, c_reg, name="QNDM")
+
+    # quantum circuit: "QNDM for gradient"
+    qndm_expectation_value_circuit(bc, newspop, num_qub, num_l, val_g, detect_index, shift, ent_gate)
+
+    param_dict = dict(zip(bc.parameters, initial_values))
+
+    # Prepare the circuit with parameters
+    circ = bc.assign_parameters(param_dict)
+
+    # measure the detector qubit
+    circ.measure(detect_index, detect_index)
+    circ.barrier()
+
+    circ.measure([i for i in range(num_qub)], [i for i in range(num_qub-1,-1,-1)])
+
+    print("Circ two")
+
+    print(circ)
+
+
+    # transpile the circuit for optimization
+    transpiled_circ = transpile(circ, simulator)
+
+    # run quantum circuit with correct parameter binding
+    sim_result = simulator.run(transpiled_circ, parameter_binds=[param_dict], shots=shots).result()
+    data_after_detector_measure = sim_result.get_counts(transpiled_circ)
+
+   
+    return data_before_detector_measure, data_after_detector_measure
 
 
 #==========================================================#

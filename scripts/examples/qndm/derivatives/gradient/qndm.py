@@ -78,7 +78,8 @@ def qndm_expectation_value_circuit(circ,pm,num_qub,num_l,val_g,q_d,shift,ent_gat
 
   #first coupling interation
   evo_time = Parameter('p_deco')
-  trotterized_op = PauliEvolutionGate(pm,evo_time)
+  #todo add in to the text that there is a new minus in the exponential
+  trotterized_op = PauliEvolutionGate(pm,-evo_time)
   circ.append(trotterized_op, qubits_exp)
   
 
